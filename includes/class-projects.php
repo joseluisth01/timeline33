@@ -140,6 +140,185 @@ class Timeline_Projects {
             $project_id
         ));
     }
+
+    /**
+ * Notificar a clientes sobre nuevo proyecto asignado
+ */
+public function notify_clients_new_project($project_id, $client_ids = array()) {
+    global $wpdb;
+    
+    $project = $this->get_project($project_id);
+    
+    if (!$project || empty($client_ids)) {
+        return false;
+    }
+    
+    // URL del proyecto
+    $project_url = home_url('/timeline-proyecto/' . $project_id);
+    
+    // Obtener información de cada cliente
+    $table_users = $this->db->get_table_name('users');
+    
+    foreach ($client_ids as $client_id) {
+        $client = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM {$table_users} WHERE id = %d",
+            intval($client_id)
+        ));
+        
+        if (!$client) {
+            continue;
+        }
+        
+        $subject = '¡Nuevo proyecto asignado! - BeBuilt';
+        
+        $start_date = new DateTime($project->start_date);
+        $end_date = new DateTime($project->end_date);
+        
+        $message = "
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset='UTF-8'>
+            <style>
+                body { 
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+                    line-height: 1.6; 
+                    color: #333; 
+                    margin: 0;
+                    padding: 0;
+                }
+                .container { 
+                    max-width: 600px; 
+                    margin: 0 auto; 
+                    padding: 0;
+                }
+                .header { 
+                    background: #0a0a0a; 
+                    color: #fff; 
+                    padding: 40px 30px; 
+                    text-align: center; 
+                }
+                .header h1 {
+                    margin: 0;
+                    font-size: 28px;
+                    font-weight: 300;
+                    letter-spacing: 3px;
+                }
+                .content { 
+                    background: #ffffff; 
+                    padding: 40px 30px; 
+                }
+                .content h2 {
+                    color: #2c3e50;
+                    font-size: 24px;
+                    margin-bottom: 20px;
+                    font-weight: 400;
+                }
+                .project-card { 
+                    background: #f8f9fa; 
+                    padding: 25px; 
+                    margin: 25px 0; 
+                    border-left: 4px solid #FDC425; 
+                }
+                .project-card h3 {
+                    margin: 0 0 15px 0;
+                    color: #2c3e50;
+                    font-size: 20px;
+                    font-weight: 600;
+                }
+                .project-info {
+                    margin: 10px 0;
+                    color: #555;
+                    font-size: 14px;
+                }
+                .project-info strong {
+                    color: #2c3e50;
+                    font-weight: 600;
+                }
+                .btn { 
+                    display: inline-block; 
+                    padding: 14px 35px; 
+                    background: #FDC425; 
+                    color: #000; 
+                    text-decoration: none; 
+                    margin-top: 25px;
+                    font-weight: 600;
+                    border-radius: 5px;
+                    text-transform: uppercase;
+                    font-size: 12px;
+                    letter-spacing: 1px;
+                }
+                .footer {
+                    background: #f8f9fa;
+                    padding: 20px 30px;
+                    text-align: center;
+                    color: #666;
+                    font-size: 13px;
+                }
+                .divider {
+                    height: 1px;
+                    background: #e0e0e0;
+                    margin: 20px 0;
+                }
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'>
+                    <h1>BEBUILT</h1>
+                </div>
+                <div class='content'>
+                    <h2>¡Tienes un nuevo proyecto! 🎉</h2>
+                    <p>Hola <strong>{$client->username}</strong>,</p>
+                    <p>Nos complace informarte que se ha creado un nuevo proyecto y ha sido asignado a tu cuenta.</p>
+                    
+                    <div class='project-card'>
+                        <h3>{$project->name}</h3>
+                        <div class='project-info'>
+                            <strong>📍 Ubicación:</strong> " . esc_html($project->address) . "
+                        </div>
+                        <div class='project-info'>
+                            <strong>📅 Inicio:</strong> " . $start_date->format('d/m/Y') . "
+                        </div>
+                        <div class='project-info'>
+                            <strong>🏁 Fin previsto:</strong> " . $end_date->format('d/m/Y') . "
+                        </div>
+                    </div>
+                    
+                    " . (!empty($project->description) ? "
+                    <div class='divider'></div>
+                    <p style='color: #555; line-height: 1.8;'>" . nl2br(esc_html($project->description)) . "</p>
+                    " : "") . "
+                    
+                    <div class='divider'></div>
+                    
+                    <p style='margin-top: 25px;'>Desde tu área de proyectos podrás:</p>
+                    <ul style='color: #555; line-height: 1.8;'>
+                        <li>Ver el timeline con todos los hitos del proyecto</li>
+                        <li>Consultar el estado de cada fase</li>
+                        <li>Descargar documentos relacionados</li>
+                        <li>Seguir el progreso en tiempo real</li>
+                    </ul>
+                    
+                    <div style='text-align: center; margin-top: 30px;'>
+                        <a href='{$project_url}' class='btn'>Ver mi proyecto</a>
+                    </div>
+                </div>
+                <div class='footer'>
+                    <p>Este es un correo automático. Si tienes alguna duda, contacta con tu gestor de proyecto.</p>
+                    <p style='margin-top: 10px;'><strong>BeBuilt</strong> - Gestión de Proyectos</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        ";
+        
+        $headers = array('Content-Type: text/html; charset=UTF-8');
+        wp_mail($client->email, $subject, $message, $headers);
+    }
+    
+    return true;
+}
     
     /**
      * Obtener todos los proyectos

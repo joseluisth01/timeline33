@@ -1002,116 +1002,139 @@ class Timeline_Plugin
     }
 
     public function handle_create_project()
-    {
-        if (!$this->is_logged_in() || !$this->projects) {
-            wp_redirect(home_url('/login-proyectos'));
-            exit;
-        }
-
-        $current_user = $this->get_current_user();
-
-        if (!$this->can_manage_projects($current_user)) {
-            wp_die('No tienes permisos.');
-        }
-
-        if (
-            !isset($_POST['timeline_project_nonce']) ||
-            !wp_verify_nonce($_POST['timeline_project_nonce'], 'timeline_project_form')
-        ) {
-            wp_die('Error de seguridad');
-        }
-
-        $featured_image = '';
-        if (!empty($_POST['featured_image'])) {
-            $image_data = $_POST['featured_image'];
-            if (strpos($image_data, 'data:image') === 0) {
-                $featured_image = $this->save_base64_image($image_data, 'project');
-            } else {
-                $featured_image = $image_data;
-            }
-        }
-
-        $project_data = array(
-            'name' => $_POST['name'],
-            'address' => $_POST['address'],
-            'start_date' => $_POST['start_date'],
-            'end_date' => $_POST['end_date'],
-            'description' => $_POST['description'],
-            'featured_image' => $featured_image,
-            'project_status' => isset($_POST['project_status']) ? $_POST['project_status'] : 'en_proceso'
-        );
-
-        $project_id = $this->projects->create_project($project_data, $current_user->id);
-
-        if ($project_id) {
-            if (isset($_POST['clients']) && is_array($_POST['clients'])) {
-                foreach ($_POST['clients'] as $client_id) {
-                    $this->projects->assign_client_to_project($project_id, $client_id, $current_user->id);
-                }
-            }
-
-            $this->create_weekly_milestones($project_id, $_POST['start_date'], $_POST['end_date'], $current_user->id);
-
-            wp_redirect(home_url('/timeline-proyectos?success=created'));
-        } else {
-            wp_redirect(home_url('/timeline-proyecto-nuevo?error=failed'));
-        }
+{
+    if (!$this->is_logged_in() || !$this->projects) {
+        wp_redirect(home_url('/login-proyectos'));
         exit;
     }
 
-    private function create_weekly_milestones($project_id, $start_date, $end_date, $user_id)
-    {
-        if (!$this->milestones) {
-            return;
-        }
+    $current_user = $this->get_current_user();
 
-        $start = new DateTime($start_date);
-        $end = new DateTime($end_date);
+    if (!$this->can_manage_projects($current_user)) {
+        wp_die('No tienes permisos.');
+    }
 
-        $current = clone $start;
+    if (
+        !isset($_POST['timeline_project_nonce']) ||
+        !wp_verify_nonce($_POST['timeline_project_nonce'], 'timeline_project_form')
+    ) {
+        wp_die('Error de seguridad');
+    }
 
-        $day_of_week = (int)$current->format('N');
-        if ($day_of_week != 5) {
-            $days_until_friday = (5 - $day_of_week + 7) % 7;
-            if ($days_until_friday == 0) {
-                $days_until_friday = 7;
-            }
-            $current->modify("+{$days_until_friday} days");
-        }
-
-        $counter = 0;
-
-        while ($current <= $end) {
-            $counter++;
-
-            $milestone_data = array(
-                'project_id' => $project_id,
-                'title' => "Revisión Semanal #{$counter}",
-                'date' => $current->format('Y-m-d'),
-                'description' => '',
-                'status' => 'pendiente'
-            );
-
-            $milestone_id = $this->milestones->create_milestone($milestone_data, $user_id);
-
-            if ($milestone_id && $this->milestones) {
-                $default_image = 'https://www.bebuilt.es/wp-content/uploads/2023/08/cropped-favicon.png';
-                $this->milestones->add_milestone_image($milestone_id, $default_image, 0);
-            }
-
-            $current->modify('+7 days');
-        }
-
-        if ($this->audit_log && $counter > 0) {
-            $this->audit_log->log(
-                $user_id,
-                'create',
-                'project',
-                $project_id,
-                "Se crearon automáticamente {$counter} hitos semanales para el proyecto"
-            );
+    $featured_image = '';
+    if (!empty($_POST['featured_image'])) {
+        $image_data = $_POST['featured_image'];
+        if (strpos($image_data, 'data:image') === 0) {
+            $featured_image = $this->save_base64_image($image_data, 'project');
+        } else {
+            $featured_image = $image_data;
         }
     }
+
+    $project_data = array(
+        'name' => $_POST['name'],
+        'address' => $_POST['address'],
+        'start_date' => $_POST['start_date'],
+        'end_date' => $_POST['end_date'],
+        'description' => $_POST['description'],
+        'featured_image' => $featured_image,
+        'project_status' => isset($_POST['project_status']) ? $_POST['project_status'] : 'en_proceso'
+    );
+
+    $project_id = $this->projects->create_project($project_data, $current_user->id);
+
+    if ($project_id) {
+        // ✅ Array para almacenar IDs de clientes asignados
+        $assigned_client_ids = array();
+        
+        // Asignar clientes al proyecto
+        if (isset($_POST['clients']) && is_array($_POST['clients'])) {
+            foreach ($_POST['clients'] as $client_id) {
+                $this->projects->assign_client_to_project($project_id, $client_id, $current_user->id);
+                $assigned_client_ids[] = intval($client_id);
+            }
+        }
+
+        // Crear hitos semanales automáticos (sin notificaciones)
+        $this->create_weekly_milestones($project_id, $_POST['start_date'], $_POST['end_date'], $current_user->id);
+
+        // ✅ NUEVO: Enviar notificación de nuevo proyecto a los clientes asignados
+        if (!empty($assigned_client_ids)) {
+            $this->projects->notify_clients_new_project($project_id, $assigned_client_ids);
+            
+            // Log en auditoría
+            if ($this->audit_log) {
+                $this->audit_log->log(
+                    $current_user->id,
+                    'create',
+                    'project',
+                    $project_id,
+                    'Notificación de nuevo proyecto enviada a ' . count($assigned_client_ids) . ' cliente(s)'
+                );
+            }
+        }
+
+        wp_redirect(home_url('/timeline-proyectos?success=created'));
+    } else {
+        wp_redirect(home_url('/timeline-proyecto-nuevo?error=failed'));
+    }
+    exit;
+}
+
+    private function create_weekly_milestones($project_id, $start_date, $end_date, $user_id)
+{
+    if (!$this->milestones) {
+        return;
+    }
+
+    $start = new DateTime($start_date);
+    $end = new DateTime($end_date);
+
+    $current = clone $start;
+
+    $day_of_week = (int)$current->format('N');
+    if ($day_of_week != 5) {
+        $days_until_friday = (5 - $day_of_week + 7) % 7;
+        if ($days_until_friday == 0) {
+            $days_until_friday = 7;
+        }
+        $current->modify("+{$days_until_friday} days");
+    }
+
+    $counter = 0;
+
+    while ($current <= $end) {
+        $counter++;
+
+        $milestone_data = array(
+            'project_id' => $project_id,
+            'title' => "Revisión Semanal #{$counter}",
+            'date' => $current->format('Y-m-d'),
+            'description' => '',
+            'status' => 'pendiente'
+        );
+
+        // ✅ CAMBIO IMPORTANTE: Pasar false para NO enviar notificación
+        $milestone_id = $this->milestones->create_milestone($milestone_data, $user_id, false);
+
+        if ($milestone_id && $this->milestones) {
+            $default_image = 'https://www.bebuilt.es/wp-content/uploads/2023/08/cropped-favicon.png';
+            $this->milestones->add_milestone_image($milestone_id, $default_image, 0);
+        }
+
+        $current->modify('+7 days');
+    }
+
+    if ($this->audit_log && $counter > 0) {
+        $this->audit_log->log(
+            $user_id,
+            'create',
+            'project',
+            $project_id,
+            "Se crearon automáticamente {$counter} hitos semanales para el proyecto (sin notificaciones)"
+        );
+    }
+}
 
     public function handle_update_project()
     {

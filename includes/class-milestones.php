@@ -2,6 +2,7 @@
 /**
  * Clase para gestión de hitos
  * Archivo: includes/class-milestones.php
+ * ACTUALIZADO: Parámetro para controlar envío de notificaciones
  */
 
 if (!defined('ABSPATH')) exit;
@@ -24,8 +25,11 @@ class Timeline_Milestones {
     
     /**
      * Crear un nuevo hito
+     * @param array $data Datos del hito
+     * @param int $user_id ID del usuario que crea
+     * @param bool $send_notification Si se debe enviar notificación (por defecto true)
      */
-    public function create_milestone($data, $user_id) {
+    public function create_milestone($data, $user_id, $send_notification = true) {
         global $wpdb;
         $table = $this->db->get_table_name('milestones');
         
@@ -48,8 +52,10 @@ class Timeline_Milestones {
             $this->log_activity($user_id, 'create', 'milestone', $milestone_id, 
                 'Hito creado: ' . $data['title']);
             
-            // Enviar notificación a clientes del proyecto
-            $this->notify_project_clients($data['project_id'], $milestone_id, 'new');
+            // ✅ SOLO enviar notificación si $send_notification es true
+            if ($send_notification) {
+                $this->notify_project_clients($data['project_id'], $milestone_id, 'new');
+            }
             
             return $milestone_id;
         }
