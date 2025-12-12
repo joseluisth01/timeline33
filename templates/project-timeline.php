@@ -902,6 +902,10 @@ foreach ($milestones as $index => $milestone) {
                 justify-content: flex-start !important;
             }
 
+            #milestoneModal .modal-content{
+                    max-height: 76vh;
+            }
+
             .titulodescarga {
                 font-size: 24px !important;
             }
@@ -992,7 +996,7 @@ foreach ($milestones as $index => $milestone) {
 <body>
     <div class="fijo-top">
         <nav class="navbar">
-            <div class="navbar-brand"><img src="https://www.bebuilt.es/wp-content/uploads/2023/08/cropped-favicon.png" alt=""></div>
+            <div class="navbar-brand"><img src="https://www.bebuilt.es/wp-content/uploads/2025/12/logo-bebuilt-blanco.png" alt=""></div>
             <a href="<?php echo home_url('/timeline-mis-proyectos'); ?>" class="btn-back">← Mis Proyectos</a>
         </nav>
 

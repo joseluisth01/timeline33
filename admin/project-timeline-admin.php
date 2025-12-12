@@ -2,6 +2,7 @@
 /**
  * Template: Gestión de Timeline del Proyecto (Vista Administrador)
  * Archivo: admin/project-timeline-admin.php
+ * OPTIMIZADO: Compresión de imágenes antes de enviar
  */
 
 $project_id = get_query_var('timeline_id');
@@ -379,10 +380,49 @@ $milestones = $milestones_class->get_project_milestones_with_images($project_id)
             justify-content: center;
         }
 
-        @media (max-width: 768px){
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loading-content {
+            text-align: center;
+            color: #fff;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #FDC425;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
             .milestone-card {
                 grid-template-columns: 1fr;
             }
+
+            
         }
     </style>
 </head>
@@ -467,6 +507,14 @@ $milestones = $milestones_class->get_project_milestones_with_images($project_id)
         </div>
     </div>
     
+    <!-- Overlay de carga -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p>Procesando imágenes...</p>
+        </div>
+    </div>
+    
     <!-- Modal para crear/editar hito -->
     <div id="milestoneModal" class="modal">
         <div class="modal-content">
@@ -508,7 +556,7 @@ $milestones = $milestones_class->get_project_milestones_with_images($project_id)
                     <input type="file" id="milestone_images" accept="image/*" multiple style="display: none;">
                     <div class="images-upload-area" onclick="document.getElementById('milestone_images').click()">
                         <p>Haz clic para seleccionar imágenes</p>
-                        <small style="color: rgba(255,255,255,0.4);">Puedes seleccionar varias a la vez</small>
+                        <small style="color: rgba(255,255,255,0.4);">Puedes seleccionar varias a la vez (máx 1MB cada una)</small>
                     </div>
                     <div id="preview-images" class="preview-images"></div>
                     <input type="hidden" id="images_data" name="images_data" value="">
@@ -555,7 +603,6 @@ $milestones = $milestones_class->get_project_milestones_with_images($project_id)
             document.getElementById('status').value = milestone.status;
             document.getElementById('description').value = milestone.description || '';
             
-            // Cargar imágenes existentes
             imagesArray = [];
             const previewContainer = document.getElementById('preview-images');
             previewContainer.innerHTML = '';
@@ -599,7 +646,6 @@ $milestones = $milestones_class->get_project_milestones_with_images($project_id)
                 container.appendChild(div);
             });
             
-            // Añadir nuevas imágenes después
             imagesArray.forEach((img, index) => {
                 const div = document.createElement('div');
                 div.className = 'preview-image-item';
@@ -623,33 +669,83 @@ $milestones = $milestones_class->get_project_milestones_with_images($project_id)
             }
         }
         
-        // Manejo de imágenes
-        document.getElementById('milestone_images').addEventListener('change', function(e) {
-            const files = Array.from(e.target.files);
-            
-            files.forEach(file => {
-                if (file.type.match('image.*')) {
-                    const reader = new FileReader();
+        // OPTIMIZACIÓN: Comprimir imagen antes de convertir a base64
+        function compressImage(file, maxWidth = 1200, maxHeight = 1200, quality = 0.8) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const img = new Image();
                     
-                    reader.onload = function(event) {
-                        const base64 = event.target.result;
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        
+                        // Redimensionar si es necesario
+                        if (width > maxWidth) {
+                            height = (height * maxWidth) / width;
+                            width = maxWidth;
+                        }
+                        if (height > maxHeight) {
+                            width = (width * maxHeight) / height;
+                            height = maxHeight;
+                        }
+                        
+                        canvas.width = width;
+                        canvas.height = height;
+                        
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        // Convertir a base64 comprimido
+                        const base64 = canvas.toDataURL('image/jpeg', quality);
+                        resolve(base64);
+                    };
+                    
+                    img.onerror = reject;
+                    img.src = e.target.result;
+                };
+                
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        // Manejo de imágenes con compresión
+        document.getElementById('milestone_images').addEventListener('change', async function(e) {
+            const files = Array.from(e.target.files);
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            loadingOverlay.classList.add('active');
+            
+            for (const file of files) {
+                if (file.type.match('image.*')) {
+                    // Validar tamaño antes de procesar (máx 5MB)
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('La imagen "' + file.name + '" es demasiado grande. Máximo 5MB por imagen.');
+                        continue;
+                    }
+                    
+                    try {
+                        // Comprimir imagen
+                        const base64 = await compressImage(file, 1200, 1200, 0.8);
                         imagesArray.push(base64);
                         renderExistingImages();
                         updateImagesData();
-                    };
-                    
-                    reader.readAsDataURL(file);
+                    } catch (error) {
+                        console.error('Error al procesar imagen:', error);
+                        alert('Error al procesar la imagen: ' + file.name);
+                    }
                 }
-            });
+            }
             
-            // Reset input para permitir seleccionar las mismas imágenes de nuevo
+            loadingOverlay.classList.remove('active');
             e.target.value = '';
         });
         
         function updateImagesData() {
             const allImages = [];
             
-            // Añadir imágenes existentes (solo URLs)
             if (isEditMode && existingImages.length > 0) {
                 existingImages.forEach(img => {
                     allImages.push({
@@ -659,7 +755,6 @@ $milestones = $milestones_class->get_project_milestones_with_images($project_id)
                 });
             }
             
-            // Añadir nuevas imágenes (base64)
             imagesArray.forEach(base64 => {
                 allImages.push({
                     type: 'new',
@@ -667,7 +762,6 @@ $milestones = $milestones_class->get_project_milestones_with_images($project_id)
                 });
             });
             
-            // Solo asignar si hay imágenes, sino dejar vacío para que use la imagen por defecto
             if (allImages.length > 0) {
                 document.getElementById('images_data').value = JSON.stringify(allImages);
             } else {
@@ -678,9 +772,11 @@ $milestones = $milestones_class->get_project_milestones_with_images($project_id)
         // Actualizar datos de imágenes antes de enviar el formulario
         document.getElementById('milestone-form').addEventListener('submit', function(e) {
             updateImagesData();
+            
+            // Mostrar loading al enviar
+            document.getElementById('loadingOverlay').classList.add('active');
         });
         
-        // Cerrar modal al hacer clic fuera
         window.onclick = function(event) {
             const modal = document.getElementById('milestoneModal');
             if (event.target == modal) {

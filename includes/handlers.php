@@ -1,7 +1,8 @@
 <?php
 /**
- * Handlers para acciones de hitos y documentos
+ * Handlerss para acciones de hitos y documentos
  * Archivo: includes/handlers.php
+ * ACTUALIZADO: Manejo mejorado de sesiones para modo incógnito
  */
 
 if (!defined('ABSPATH')) exit;
@@ -25,37 +26,61 @@ class Timeline_Handlers {
     }
     
     /**
+     * Verificar si el usuario está logueado (compatible con modo incógnito)
+     */
+    private function verify_logged_in() {
+        // Asegurar que la sesión está activa
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
+        
+        // Verificar que existe el usuario en sesión
+        if (!isset($_SESSION['timeline_user_id']) || empty($_SESSION['timeline_user_id'])) {
+            wp_redirect(home_url('/login-proyectos?error=session_expired'));
+            exit;
+        }
+        
+        return intval($_SESSION['timeline_user_id']);
+    }
+    
+    /**
+     * Obtener usuario actual
+     */
+    private function get_current_user($user_id) {
+        global $wpdb;
+        $table_users = $wpdb->prefix . 'timeline_users';
+        
+        return $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM {$table_users} WHERE id = %d",
+            $user_id
+        ));
+    }
+    
+    /**
      * Guardar hito (crear o actualizar)
      */
     public function handle_save_milestone() {
         // Verificar login
-        if (!isset($_SESSION['timeline_user_id'])) {
-            wp_redirect(home_url('/login-proyectos'));
-            exit;
-        }
+        $user_id = $this->verify_logged_in();
         
         // Verificar nonce
         if (!isset($_POST['timeline_milestone_nonce']) || 
             !wp_verify_nonce($_POST['timeline_milestone_nonce'], 'timeline_milestone')) {
-            wp_die('Error de seguridad');
+            wp_die('Error de seguridad - Nonce inválido');
         }
         
         global $wpdb;
-        $user_id = $_SESSION['timeline_user_id'];
+        $user = $this->get_current_user($user_id);
+        
+        // Verificar permisos
+        if (!$user || !in_array($user->role, array('super_admin', 'administrador'))) {
+            wp_die('No tienes permisos para realizar esta acción.');
+        }
+        
         $project_id = intval($_POST['project_id']);
         $milestone_id = isset($_POST['milestone_id']) && !empty($_POST['milestone_id']) 
             ? intval($_POST['milestone_id']) 
             : null;
-        
-        // Verificar permisos
-        $user = $wpdb->get_row($wpdb->prepare(
-            "SELECT * FROM {$wpdb->prefix}timeline_users WHERE id = %d",
-            $user_id
-        ));
-        
-        if (!in_array($user->role, array('super_admin', 'administrador'))) {
-            wp_die('No tienes permisos para realizar esta acción.');
-        }
         
         // Preparar datos
         $milestone_data = array(
@@ -173,31 +198,24 @@ class Timeline_Handlers {
      */
     public function handle_delete_milestone() {
         // Verificar login
-        if (!isset($_SESSION['timeline_user_id'])) {
-            wp_redirect(home_url('/login-proyectos'));
-            exit;
-        }
+        $user_id = $this->verify_logged_in();
         
         // Verificar nonce
         if (!isset($_GET['_wpnonce']) || 
             !wp_verify_nonce($_GET['_wpnonce'], 'delete_milestone')) {
-            wp_die('Error de seguridad');
+            wp_die('Error de seguridad - Nonce inválido');
         }
         
         global $wpdb;
-        $user_id = $_SESSION['timeline_user_id'];
-        $milestone_id = intval($_GET['milestone_id']);
-        $project_id = intval($_GET['project_id']);
+        $user = $this->get_current_user($user_id);
         
         // Verificar permisos
-        $user = $wpdb->get_row($wpdb->prepare(
-            "SELECT * FROM {$wpdb->prefix}timeline_users WHERE id = %d",
-            $user_id
-        ));
-        
-        if (!in_array($user->role, array('super_admin', 'administrador'))) {
+        if (!$user || !in_array($user->role, array('super_admin', 'administrador'))) {
             wp_die('No tienes permisos para realizar esta acción.');
         }
+        
+        $milestone_id = intval($_GET['milestone_id']);
+        $project_id = intval($_GET['project_id']);
         
         // Eliminar hito
         $result = $this->milestones->delete_milestone($milestone_id, $user_id);
@@ -211,34 +229,27 @@ class Timeline_Handlers {
     }
     
     /**
-     * NUEVO: Subir documento
+     * Subir documento
      */
     public function handle_upload_document() {
         // Verificar login
-        if (!isset($_SESSION['timeline_user_id'])) {
-            wp_redirect(home_url('/login-proyectos'));
-            exit;
-        }
+        $user_id = $this->verify_logged_in();
         
         // Verificar nonce
         if (!isset($_POST['timeline_document_nonce']) || 
             !wp_verify_nonce($_POST['timeline_document_nonce'], 'timeline_document')) {
-            wp_die('Error de seguridad');
+            wp_die('Error de seguridad - Nonce inválido');
         }
         
         global $wpdb;
-        $user_id = $_SESSION['timeline_user_id'];
-        $project_id = intval($_POST['project_id']);
+        $user = $this->get_current_user($user_id);
         
         // Verificar permisos
-        $user = $wpdb->get_row($wpdb->prepare(
-            "SELECT * FROM {$wpdb->prefix}timeline_users WHERE id = %d",
-            $user_id
-        ));
-        
-        if (!in_array($user->role, array('super_admin', 'administrador'))) {
+        if (!$user || !in_array($user->role, array('super_admin', 'administrador'))) {
             wp_die('No tienes permisos para realizar esta acción.');
         }
+        
+        $project_id = intval($_POST['project_id']);
         
         // Verificar que se haya subido un archivo
         if (!isset($_FILES['document_file']) || $_FILES['document_file']['error'] !== UPLOAD_ERR_OK) {
@@ -299,35 +310,28 @@ class Timeline_Handlers {
     }
     
     /**
-     * NUEVO: Eliminar documento
+     * Eliminar documento
      */
     public function handle_delete_document() {
         // Verificar login
-        if (!isset($_SESSION['timeline_user_id'])) {
-            wp_redirect(home_url('/login-proyectos'));
-            exit;
-        }
+        $user_id = $this->verify_logged_in();
         
         // Verificar nonce
         if (!isset($_GET['_wpnonce']) || 
             !wp_verify_nonce($_GET['_wpnonce'], 'delete_document')) {
-            wp_die('Error de seguridad');
+            wp_die('Error de seguridad - Nonce inválido');
         }
         
         global $wpdb;
-        $user_id = $_SESSION['timeline_user_id'];
-        $document_id = intval($_GET['document_id']);
-        $project_id = intval($_GET['project_id']);
+        $user = $this->get_current_user($user_id);
         
         // Verificar permisos
-        $user = $wpdb->get_row($wpdb->prepare(
-            "SELECT * FROM {$wpdb->prefix}timeline_users WHERE id = %d",
-            $user_id
-        ));
-        
-        if (!in_array($user->role, array('super_admin', 'administrador'))) {
+        if (!$user || !in_array($user->role, array('super_admin', 'administrador'))) {
             wp_die('No tienes permisos para realizar esta acción.');
         }
+        
+        $document_id = intval($_GET['document_id']);
+        $project_id = intval($_GET['project_id']);
         
         // Eliminar documento
         $result = $this->documents->delete_document($document_id, $user_id);
@@ -351,11 +355,14 @@ class Timeline_Handlers {
             
             // Validar tipo de imagen
             if (!in_array($type, ['jpg', 'jpeg', 'gif', 'png'])) {
+                error_log('Timeline Plugin: Tipo de imagen no válido - ' . $type);
                 return '';
             }
+            
             $base64_string = base64_decode($base64_string);
             
             if ($base64_string === false) {
+                error_log('Timeline Plugin: Error al decodificar base64');
                 return '';
             }
             
@@ -375,6 +382,8 @@ class Timeline_Handlers {
             if (file_put_contents($filepath, $base64_string)) {
                 // Retornar URL
                 return $upload_dir['baseurl'] . '/timeline-milestones/' . $filename;
+            } else {
+                error_log('Timeline Plugin: Error al guardar imagen en ' . $filepath);
             }
         }
         

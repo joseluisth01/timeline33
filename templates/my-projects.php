@@ -314,7 +314,7 @@
 <body>
 
     <nav class="navbar">
-        <div class="navbar-brand"><img src="https://www.bebuilt.es/wp-content/uploads/2023/08/cropped-favicon.png" alt=""></div>
+        <div class="navbar-brand"><img src="https://www.bebuilt.es/wp-content/uploads/2025/12/logo-bebuilt-blanco.png" alt=""></div>
 
         <!-- HAMBURGER -->
         <div class="mobile-menu-toggle" id="mobileMenuToggle" onclick="toggleMobile()">

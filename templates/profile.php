@@ -474,7 +474,7 @@
     <nav class="navbar">
         <?php if ($current_user->role === 'cliente'): ?>
             <div class="navbar-brand">
-                <img src="https://www.bebuilt.es/wp-content/uploads/2023/08/cropped-favicon.png" alt="BEBUILT">
+                <img src="https://www.bebuilt.es/wp-content/uploads/2025/12/logo-bebuilt-blanco.png" alt="BEBUILT">
             </div>
         <?php else: ?>
             <div class="navbar-brand"><img style="height:35px" src="https://www.bebuilt.es/wp-content/uploads/2025/12/logo-bebuilt-blanco.png" alt=""></div>
