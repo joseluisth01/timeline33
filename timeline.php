@@ -170,6 +170,7 @@ class Timeline_Plugin
         add_rewrite_rule('^timeline-proyecto-vista-previa/([0-9]+)/?$', 'index.php?timeline_page=project_preview&timeline_id=$matches[1]', 'top');
         add_rewrite_rule('^timeline-documentos/([0-9]+)/?$', 'index.php?timeline_page=project_documents&timeline_id=$matches[1]', 'top');
         add_rewrite_rule('^timeline-audit-log/?$', 'index.php?timeline_page=audit_log', 'top');
+        add_rewrite_rule('^timeline-proyecto-vista-previa/([0-9]+)/?$', 'index.php?timeline_page=project_preview&timeline_id=$matches[1]', 'top');
     }
 
     public function init()
@@ -417,6 +418,24 @@ class Timeline_Plugin
                     exit;
                 }
                 $this->load_template_admin('audit-log');
+                break;
+
+            case 'project_preview':
+                if (!$this->is_logged_in()) {
+                    wp_redirect(home_url('/login-proyectos'));
+                    exit;
+                }
+                $current_user = $this->get_current_user();
+                if (!$this->can_manage_projects($current_user)) {
+                    wp_redirect(home_url('/timeline-dashboard'));
+                    exit;
+                }
+                $project_id = get_query_var('timeline_id');
+                if (!$project_id) {
+                    wp_redirect(home_url('/timeline-proyectos'));
+                    exit;
+                }
+                $this->load_template_admin('project-preview');
                 break;
         }
     }

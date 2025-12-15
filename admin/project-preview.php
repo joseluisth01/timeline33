@@ -46,14 +46,12 @@ foreach ($milestones as $index => $milestone) {
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #0a0a0a;
             color: #ffffff;
         }
 
         /* NAVBAR ADMIN CON INDICADOR DE VISTA PREVIA */
         .navbar {
-            background: rgba(255, 255, 255, 0.02);
-            backdrop-filter: blur(10px);
+            background: black;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             padding: 20px 40px;
             display: flex;
@@ -113,7 +111,7 @@ foreach ($milestones as $index => $milestone) {
         .header-section {
             background: #ffffff;
             color: #000000;
-            padding: 60px 40px;
+            padding: 50px;
             text-align: center;
             margin-top: 88px;
         }
@@ -135,6 +133,7 @@ foreach ($milestones as $index => $milestone) {
             padding: 80px 40px;
             background: #ffffff;
             color: #000;
+            padding-top: 0px;
         }
 
         .timeline-wrapper {
@@ -145,7 +144,7 @@ foreach ($milestones as $index => $milestone) {
         /* Barra superior timeline */
         .timeline-bar-container {
             width: 100%;
-            padding: 20px 0;
+            padding: 0px;
             background: #f2f2f2;
             position: sticky;
             top: 88px;
@@ -217,6 +216,7 @@ foreach ($milestones as $index => $milestone) {
             font-weight: 600;
             margin-top: 0px;
             letter-spacing: 0.5px;
+            color: black;
         }
 
         .timeline-top-item.active .timeline-top-point { background-color: #000; }
@@ -306,7 +306,7 @@ foreach ($milestones as $index => $milestone) {
             z-index: 4;
         }
 
-        .milestone-card:nth-child(odd)::before { left: 50%; }
+        .milestone-card:nth-child(odd)::before { left: 30px !important; }
         .milestone-card:nth-child(even)::before { right: 50%; }
 
         .milestone-card-image {
@@ -427,6 +427,15 @@ foreach ($milestones as $index => $milestone) {
                 padding: 15px 20px;
             }
 
+            .header-section{
+                margin-top: 130px;
+                padding-bottom: 0px !important;
+            }
+
+            .timeline-bar-container{
+                top: 155px;
+            }
+
             .navbar-left {
                 flex-direction: column;
                 gap: 10px;
@@ -480,16 +489,7 @@ foreach ($milestones as $index => $milestone) {
         <a href="<?php echo home_url('/timeline-proyecto-admin/' . $project_id); ?>" class="btn-back">← Volver a Gestión</a>
     </nav>
 
-    <!-- Header -->
-    <div class="header-section">
-        <h1><?php echo esc_html($project->name); ?></h1>
-        <p><?php echo esc_html($project->description); ?></p>
-    </div>
-
-    <!-- Contenido (copiado de project-timeline.php) -->
-    <div class="container">
-        <!-- Barra superior -->
-        <div class="timeline-bar-container">
+    <div class="timeline-bar-container">
             <div class="timeline-bar-inner">
                 <?php foreach ($milestones as $index => $milestone): ?>
                     <?php
@@ -503,6 +503,17 @@ foreach ($milestones as $index => $milestone) {
                 <?php endforeach; ?>
             </div>
         </div>
+
+    <!-- Header -->
+    <div class="header-section">
+        <h1><?php echo esc_html($project->name); ?></h1>
+        <p><?php echo esc_html($project->description); ?></p>
+    </div>
+
+    <!-- Contenido (copiado de project-timeline.php) -->
+    <div class="container">
+        <!-- Barra superior -->
+        
 
         <!-- Timeline vertical -->
         <div class="vertical-timeline">

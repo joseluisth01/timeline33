@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Template: Gestión de Proyectos (Solo Admin/Super Admin)
  */
@@ -313,6 +314,8 @@
             transition: all 0.3s;
             text-decoration: none;
             text-align: center;
+            display: flex;
+    align-items: center;
         }
 
         .btn-small:hover {
@@ -470,14 +473,14 @@
 <body>
     <nav class="navbar">
         <div class="navbar-brand"><img style="height:35px" src="https://www.bebuilt.es/wp-content/uploads/2025/12/logo-bebuilt-blanco.png" alt=""></div>
-        
+
         <!-- Hamburger Menu -->
         <div class="mobile-menu-toggle" id="mobileMenuToggle" onclick="toggleMobileMenu()">
             <span></span>
             <span></span>
             <span></span>
         </div>
-        
+
         <div class="navbar-menu" id="navbarMenu">
             <a href="<?php echo home_url('/timeline-dashboard'); ?>">Dashboard</a>
             <a href="<?php echo home_url('/timeline-proyectos'); ?>" class="active">Proyectos</a>
@@ -485,7 +488,7 @@
             <a href="<?php echo home_url('/timeline-audit-log'); ?>">Auditoría</a>
             <a href="<?php echo home_url('/timeline-perfil'); ?>">Perfil</a>
         </div>
-        
+
         <div class="navbar-user" id="navbarUser">
             <div class="user-info">
                 <div class="user-name"><?php echo esc_html($current_user->username); ?></div>
@@ -597,11 +600,12 @@
                             <?php endif; ?>
 
                             <div class="project-actions">
-    <a href="<?php echo home_url('/timeline-proyecto-admin/' . $project->id); ?>" class="btn-small">Timeline</a>
-    <a href="<?php echo home_url('/timeline-documentos/' . $project->id); ?>" class="btn-small">Documentos</a>
-    <a href="<?php echo home_url('/timeline-proyecto-editar/' . $project->id); ?>" class="btn-small">Editar</a>
-    <button class="btn-small btn-delete" onclick="deleteProject(<?php echo $project->id; ?>, '<?php echo esc_js($project->name); ?>')">Eliminar</button>
-</div>
+                                <a href="<?php echo home_url('/timeline-proyecto-admin/' . $project->id); ?>" class="btn-small">Timeline</a>
+                                <a href="<?php echo home_url('/timeline-documentos/' . $project->id); ?>" class="btn-small">Documentos</a>
+                                <a href="<?php echo home_url('/timeline-proyecto-vista-previa/' . $project->id); ?>" class="btn-small" style="background: rgba(253, 196, 37, 0.1); border-color: rgba(253, 196, 37, 0.3); color: #FDC425;">👁️ Vista Previa</a>
+                                <a href="<?php echo home_url('/timeline-proyecto-editar/' . $project->id); ?>" class="btn-small">Editar</a>
+                                <button class="btn-small btn-delete" onclick="deleteProject(<?php echo $project->id; ?>, '<?php echo esc_js($project->name); ?>')">Eliminar</button>
+                            </div>
                         </div>
                         <input type="hidden" class="project-clients-data" value="<?php echo esc_attr($client_ids_str); ?>">
                     </div>
@@ -616,66 +620,66 @@
     </div>
 
     <script>
-    function toggleMobileMenu() {
-        const toggle = document.getElementById('mobileMenuToggle');
-        const menu = document.getElementById('navbarMenu');
-        const user = document.getElementById('navbarUser');
-        
-        toggle.classList.toggle('active');
-        menu.classList.toggle('active');
-        user.classList.toggle('active');
-    }
-    
-    // Cerrar menú al hacer clic en un enlace (en móvil)
-    document.querySelectorAll('.navbar-menu a').forEach(link => {
-        link.addEventListener('click', function() {
-            if (window.innerWidth <= 768) {
-                toggleMobileMenu();
-            }
-        });
-    });
-    
-    // Filtro de proyectos por cliente
-    document.getElementById('client-filter').addEventListener('change', function() {
-        const filterValue = this.value;
-        const projectCards = document.querySelectorAll('.project-card');
+        function toggleMobileMenu() {
+            const toggle = document.getElementById('mobileMenuToggle');
+            const menu = document.getElementById('navbarMenu');
+            const user = document.getElementById('navbarUser');
 
-        projectCards.forEach(card => {
-            const clientsData = card.querySelector('.project-clients-data');
-            if (!clientsData) return;
-
-            const clientIds = clientsData.value;
-
-            if (filterValue === 'all') {
-                card.style.display = '';
-            } else if (filterValue === 'unassigned') {
-                card.style.display = (clientIds === 'none') ? '' : 'none';
-            } else {
-                if (clientIds === 'none') {
-                    card.style.display = 'none';
-                } else {
-                    const hasClient = clientIds.split(',').includes(filterValue);
-                    card.style.display = hasClient ? '' : 'none';
-                }
-            }
-        });
-    });
-    
-    // NUEVA FUNCIÓN: Eliminar proyecto
-    function deleteProject(projectId, projectName) {
-        const confirmMessage = `¿Estás seguro de eliminar el proyecto "${projectName}"?\n\n` +
-                              `⚠️ ESTA ACCIÓN ELIMINARÁ:\n` +
-                              `• Todos los hitos del proyecto\n` +
-                              `• Todas las imágenes de los hitos\n` +
-                              `• Todos los documentos del proyecto\n` +
-                              `• Asignaciones de clientes\n\n` +
-                              `Esta acción NO se puede deshacer.`;
-        
-        if (confirm(confirmMessage)) {
-            window.location.href = '<?php echo admin_url('admin-post.php'); ?>?action=timeline_delete_project&project_id=' + projectId + '&_wpnonce=<?php echo wp_create_nonce('timeline_delete_project'); ?>';
+            toggle.classList.toggle('active');
+            menu.classList.toggle('active');
+            user.classList.toggle('active');
         }
-    }
-</script>
+
+        // Cerrar menú al hacer clic en un enlace (en móvil)
+        document.querySelectorAll('.navbar-menu a').forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth <= 768) {
+                    toggleMobileMenu();
+                }
+            });
+        });
+
+        // Filtro de proyectos por cliente
+        document.getElementById('client-filter').addEventListener('change', function() {
+            const filterValue = this.value;
+            const projectCards = document.querySelectorAll('.project-card');
+
+            projectCards.forEach(card => {
+                const clientsData = card.querySelector('.project-clients-data');
+                if (!clientsData) return;
+
+                const clientIds = clientsData.value;
+
+                if (filterValue === 'all') {
+                    card.style.display = '';
+                } else if (filterValue === 'unassigned') {
+                    card.style.display = (clientIds === 'none') ? '' : 'none';
+                } else {
+                    if (clientIds === 'none') {
+                        card.style.display = 'none';
+                    } else {
+                        const hasClient = clientIds.split(',').includes(filterValue);
+                        card.style.display = hasClient ? '' : 'none';
+                    }
+                }
+            });
+        });
+
+        // NUEVA FUNCIÓN: Eliminar proyecto
+        function deleteProject(projectId, projectName) {
+            const confirmMessage = `¿Estás seguro de eliminar el proyecto "${projectName}"?\n\n` +
+                `⚠️ ESTA ACCIÓN ELIMINARÁ:\n` +
+                `• Todos los hitos del proyecto\n` +
+                `• Todas las imágenes de los hitos\n` +
+                `• Todos los documentos del proyecto\n` +
+                `• Asignaciones de clientes\n\n` +
+                `Esta acción NO se puede deshacer.`;
+
+            if (confirm(confirmMessage)) {
+                window.location.href = '<?php echo admin_url('admin-post.php'); ?>?action=timeline_delete_project&project_id=' + projectId + '&_wpnonce=<?php echo wp_create_nonce('timeline_delete_project'); ?>';
+            }
+        }
+    </script>
 </body>
 
 </html>
