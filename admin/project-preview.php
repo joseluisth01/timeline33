@@ -2,6 +2,7 @@
 /**
  * Template: Vista Previa del Timeline (Vista Administrador simulando Cliente)
  * Archivo: admin/project-preview.php
+ * ACTUALIZADO: Con modales funcionales completos
  */
 
 $project_id = get_query_var('timeline_id');
@@ -306,8 +307,8 @@ foreach ($milestones as $index => $milestone) {
             z-index: 4;
         }
 
-        .milestone-card:nth-child(odd)::before { left: 30px !important; }
-        .milestone-card:nth-child(even)::before { right: 50%; }
+        .milestone-card:nth-child(odd)::before { left: 50% !important; z-index: -2;}
+        .milestone-card:nth-child(even)::before { right: 50%; z-index: -2;}
 
         .milestone-card-image {
             position: relative;
@@ -323,6 +324,29 @@ foreach ($milestones as $index => $milestone) {
             width: 100%;
             height: 100%;
             object-fit: cover;
+        }
+
+        .milestone-card-btn {
+            position: absolute;
+            bottom: 0px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #000;
+            color: #fff;
+            padding: 10px 20px;
+            font-size: 10px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap;
+            font-weight: 600;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .milestone-card-btn:hover {
+            background: black !important;
         }
 
         .milestone-card-content {
@@ -360,6 +384,215 @@ foreach ($milestones as $index => $milestone) {
             line-height: 1.6;
             color: black;
             text-align: justify;
+        }
+
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgb(0 0 0 / 65%);
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: #ffffff;
+            width: 90%;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            margin: 40px 0;
+            border-radius: 40px;
+        }
+
+        .modal-content.status-en_proceso { background: #FDC425; }
+        .modal-content.status-finalizado { background: #FFDE88; }
+
+        .modal-top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 30px;
+            gap: 20px;
+        }
+
+        .modal-top-left {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .modal-top-right {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            width: 46%;
+            justify-content: space-between;
+        }
+
+        .modal-close {
+            border: none;
+            background: none;
+            cursor: pointer;
+        }
+
+        .carousel-nav-btn {
+            border: none;
+            background: none;
+            cursor: pointer;
+        }
+
+        .carousel-nav-btn:hover:not(:disabled) { opacity: 0.8; }
+        .carousel-nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .modal-carousel {
+            position: relative;
+            width: 48%;
+            height: 500px;
+            overflow: hidden;
+            padding: 30px;
+            padding-top: 0px;
+            border-radius: 20px;
+            touch-action: pan-y;
+            user-select: none;
+        }
+
+        .carousel-slides-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .carousel-slide {
+            display: none;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.3s ease-out;
+        }
+
+        .carousel-slide.active { display: block; }
+
+        .carousel-slides-container.dragging { cursor: grabbing; }
+        .carousel-slides-container:not(.dragging) { cursor: grab; }
+
+        .carousel-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 20px;
+        }
+
+        .carousel-indicators {
+            position: absolute;
+            bottom: 45px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+            justify-content: center;
+        }
+
+        .carousel-indicator {
+            width: 12px !important;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .carousel-indicator.active {
+            background: #FDC425;
+            transform: scale(1.2);
+        }
+
+        .modal-info {
+            padding: 30px;
+            padding-top: 0px;
+            width: 50%;
+        }
+
+        .modal-date {
+            font-size: 14px;
+            color: black;
+            font-weight: 500;
+        }
+
+        .modal-title {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.3;
+        }
+
+        .modal-status {
+            display: inline-block;
+            padding: 8px 16px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            border-radius: 5px;
+            background-color: black;
+            color: #FDC425;
+            border-radius: 10px;
+        }
+
+        .modal-description {
+            font-size: 16px;
+            line-height: 1.8;
+            color: black;
+        }
+
+        .milestone-nav-arrows {
+            display: flex;
+            justify-content: space-between;
+            padding: 0px;
+            bottom: 30px;
+            position: absolute;
+            width: 50%;
+        }
+
+        .milestone-nav-btn {
+            background: #000;
+            color: #fff;
+            border: none;
+            padding: 12px 30px;
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            border-radius: 10px;
+        }
+
+        .milestone-nav-btn:hover:not(:disabled) { opacity: 0.8; }
+        .milestone-nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .anchomodal {
+            display: flex;
+            gap: 15px;
+            justify-content: space-between;
         }
 
         /* Documentos */
@@ -427,12 +660,12 @@ foreach ($milestones as $index => $milestone) {
                 padding: 15px 20px;
             }
 
-            .header-section{
+            .header-section {
                 margin-top: 130px;
                 padding-bottom: 0px !important;
             }
 
-            .timeline-bar-container{
+            .timeline-bar-container {
                 top: 155px;
             }
 
@@ -472,7 +705,34 @@ foreach ($milestones as $index => $milestone) {
 
             .milestone-card::after,
             .milestone-card::before {
-                left: 30px;
+                left: 30px !important;
+            }
+
+            .milestone-card:nth-child(odd)::before{
+                left: 30px !important;
+            }
+
+            .anchomodal {
+                flex-direction: column;
+            }
+
+            .anchomodal div {
+                width: 100%;
+            }
+
+            .milestone-nav-arrows {
+                position: relative;
+                width: 100%;
+                margin-top: 20px;
+            }
+
+            .modal-top-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .modal-top-right {
+                width: 100%;
             }
         }
     </style>
@@ -490,19 +750,23 @@ foreach ($milestones as $index => $milestone) {
     </nav>
 
     <div class="timeline-bar-container">
-            <div class="timeline-bar-inner">
-                <?php foreach ($milestones as $index => $milestone): ?>
-                    <?php
-                    $date = new DateTime($milestone->date);
-                    $status_class = 'status-' . esc_attr($milestone->status);
-                    ?>
-                    <div class="timeline-top-item <?php echo $status_class; ?>">
-                        <div class="timeline-top-point"></div>
-                        <div class="timeline-top-date"><?php echo $date->format('d/m/Y'); ?></div>
-                    </div>
-                <?php endforeach; ?>
-            </div>
+        <div class="timeline-bar-inner">
+            <?php foreach ($milestones as $index => $milestone): ?>
+                <?php
+                $date = new DateTime($milestone->date);
+                $status_class = 'status-' . esc_attr($milestone->status);
+                ?>
+                <div class="timeline-top-item <?php echo $status_class; ?>"
+                     data-milestone-index="<?php echo $index; ?>"
+                     <?php if ($milestone->status !== 'pendiente'): ?>
+                     onclick="scrollToMilestone(<?php echo $index; ?>)"
+                     <?php endif; ?>>
+                    <div class="timeline-top-point"></div>
+                    <div class="timeline-top-date"><?php echo $date->format('d/m/Y'); ?></div>
+                </div>
+            <?php endforeach; ?>
         </div>
+    </div>
 
     <!-- Header -->
     <div class="header-section">
@@ -510,11 +774,8 @@ foreach ($milestones as $index => $milestone) {
         <p><?php echo esc_html($project->description); ?></p>
     </div>
 
-    <!-- Contenido (copiado de project-timeline.php) -->
+    <!-- Contenido -->
     <div class="container">
-        <!-- Barra superior -->
-        
-
         <!-- Timeline vertical -->
         <div class="vertical-timeline">
             <?php foreach ($milestones as $index => $milestone): ?>
@@ -526,7 +787,10 @@ foreach ($milestones as $index => $milestone) {
                     $first_image = 'https://www.bebuilt.es/wp-content/uploads/2023/08/cropped-favicon.png';
                 }
                 ?>
-                <div class="milestone-card status-<?php echo esc_attr($milestone->status); ?>">
+                <div class="milestone-card status-<?php echo esc_attr($milestone->status); ?>"
+                     id="milestone-<?php echo $index; ?>"
+                     data-milestone-index="<?php echo $index; ?>"
+                     style="animation-delay: <?php echo $index * 0.15; ?>s;">
                     <div class="milestone-inner">
                         <div class="milestone-card-content">
                             <div style="display: flex; align-items: center; gap: 15px;">
@@ -545,6 +809,15 @@ foreach ($milestones as $index => $milestone) {
                         </div>
                         <div class="milestone-card-image">
                             <img src="<?php echo esc_url($first_image); ?>" alt="<?php echo esc_attr($milestone->title); ?>">
+                            <?php if ($milestone->status !== 'pendiente'): ?>
+                                <button class="milestone-card-btn" onclick="openMilestoneModal(<?php echo $index; ?>)">
+                                    + Información
+                                </button>
+                            <?php else: ?>
+                                <button class="milestone-card-btn" style="background: #666; cursor: not-allowed;" disabled>
+                                    Pendiente
+                                </button>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -583,5 +856,397 @@ foreach ($milestones as $index => $milestone) {
         </div>
     <?php endif; ?>
 
+    <!-- Modal de hito -->
+    <div id="milestoneModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-top-bar">
+                <div class="modal-top-left">
+                    <div class="modal-date" id="modal-date"></div>
+                    <span class="modal-status" id="modal-status"></span>
+                </div>
+                <div class="modal-top-right">
+                    <div style="display:flex; gap:10px; justify-content: space-between;">
+                        <button class="carousel-nav-btn" id="carousel-prev-top" onclick="changeSlide(-1)">
+                            <img src="https://www.bebuilt.es/wp-content/uploads/2025/12/Vector-18.svg" alt="">
+                        </button>
+                        <button class="carousel-nav-btn" id="carousel-next-top" onclick="changeSlide(1)">
+                            <img src="https://www.bebuilt.es/wp-content/uploads/2025/12/Vector-19.svg" alt="">
+                        </button>
+                    </div>
+                    <button class="modal-close" onclick="closeMilestoneModal()">
+                        <img src="https://www.bebuilt.es/wp-content/uploads/2025/12/Vector-20.svg" alt="">
+                    </button>
+                </div>
+            </div>
+
+            <div class="anchomodal">
+                <div class="modal-info">
+                    <h2 class="modal-title" id="modal-title"></h2>
+                    <div class="modal-description" id="modal-description"></div>
+                    <div class="milestone-nav-arrows">
+                        <button class="milestone-nav-btn" id="prev-milestone-btn" onclick="navigateMilestone(-1)">
+                            < Anterior
+                        </button>
+                        <button class="milestone-nav-btn" id="next-milestone-btn" onclick="navigateMilestone(1)">
+                            Siguiente >
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-carousel" id="modal-carousel"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const milestones = <?php echo json_encode($milestones); ?>;
+        let currentMilestoneIndex = 0;
+        let currentSlide = 0;
+        let totalSlides = 0;
+        let isScrolling = false;
+
+        function scrollToMilestone(index) {
+            const milestoneCard = document.getElementById('milestone-' + index);
+            if (milestoneCard) {
+                isScrolling = true;
+                const timelineItems = document.querySelectorAll('.timeline-top-item');
+                timelineItems.forEach((item, idx) => {
+                    if (idx === index) {
+                        item.classList.add('active');
+                    } else {
+                        item.classList.remove('active');
+                    }
+                });
+
+                const milestoneCards = document.querySelectorAll('.milestone-card');
+                milestoneCards.forEach((card, idx) => {
+                    if (idx === index) {
+                        card.classList.add('active');
+                    } else {
+                        card.classList.remove('active');
+                    }
+                });
+
+                milestoneCard.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+
+                setTimeout(() => {
+                    isScrolling = false;
+                }, 1000);
+            }
+        }
+
+        function openMilestoneModal(index) {
+            currentMilestoneIndex = index;
+            currentSlide = 0;
+            const milestone = milestones[index];
+
+            const modal = document.getElementById('milestoneModal');
+            const modalContent = modal.querySelector('.modal-content');
+
+            modal.classList.add('active');
+            modalContent.className = 'modal-content status-' + milestone.status;
+
+            const date = new Date(milestone.date);
+            document.getElementById('modal-date').textContent = date.toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+            document.getElementById('modal-title').textContent = milestone.title;
+            document.getElementById('modal-description').innerHTML = milestone.description.replace(/\n/g, '<br>');
+
+            const statusElement = document.getElementById('modal-status');
+            const statusLabels = {
+                'pendiente': 'Pendiente',
+                'en_proceso': 'En Proceso',
+                'finalizado': 'Finalizado'
+            };
+            statusElement.textContent = statusLabels[milestone.status] || milestone.status;
+            statusElement.className = 'modal-status status-' + milestone.status;
+
+            loadCarousel(milestone);
+            updateMilestoneNavButtons();
+            updateCarouselNavButtons();
+
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMilestoneModal() {
+            document.getElementById('milestoneModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        function loadCarousel(milestone) {
+            const carousel = document.getElementById('modal-carousel');
+            carousel.innerHTML = '';
+
+            const images = milestone.images && milestone.images.length > 0 ?
+                milestone.images : [{
+                    image_url: 'https://via.placeholder.com/900x500/cccccc/666666?text=Sin+Imagenes'
+                }];
+
+            totalSlides = images.length;
+
+            const slidesContainer = document.createElement('div');
+            slidesContainer.className = 'carousel-slides-container';
+            slidesContainer.id = 'carouselSlidesContainer';
+
+            images.forEach((img, index) => {
+                const slide = document.createElement('div');
+                slide.className = 'carousel-slide' + (index === 0 ? ' active' : '');
+                slide.innerHTML = `<img src="${img.image_url}" alt="Imagen ${index + 1}" draggable="false">`;
+                slidesContainer.appendChild(slide);
+            });
+
+            carousel.appendChild(slidesContainer);
+
+            if (images.length > 1) {
+                const indicators = document.createElement('div');
+                indicators.className = 'carousel-indicators';
+                images.forEach((_, index) => {
+                    const indicator = document.createElement('div');
+                    indicator.className = 'carousel-indicator' + (index === 0 ? ' active' : '');
+                    indicator.onclick = () => goToSlide(index);
+                    indicators.appendChild(indicator);
+                });
+                carousel.appendChild(indicators);
+            }
+
+            initSwipe(slidesContainer);
+        }
+
+        function changeSlide(direction) {
+            const slides = document.querySelectorAll('.carousel-slide');
+            const indicators = document.querySelectorAll('.carousel-indicator');
+
+            slides[currentSlide].classList.remove('active');
+            if (indicators.length) indicators[currentSlide].classList.remove('active');
+
+            currentSlide = (currentSlide + direction + slides.length) % slides.length;
+
+            slides[currentSlide].classList.add('active');
+            if (indicators.length) indicators[currentSlide].classList.add('active');
+
+            updateCarouselNavButtons();
+        }
+
+        function goToSlide(index) {
+            const slides = document.querySelectorAll('.carousel-slide');
+            const indicators = document.querySelectorAll('.carousel-indicator');
+
+            slides[currentSlide].classList.remove('active');
+            if (indicators.length) indicators[currentSlide].classList.remove('active');
+
+            currentSlide = index;
+
+            slides[currentSlide].classList.add('active');
+            if (indicators.length) indicators[currentSlide].classList.add('active');
+
+            updateCarouselNavButtons();
+        }
+
+        function updateCarouselNavButtons() {
+            const prevBtn = document.getElementById('carousel-prev-top');
+            const nextBtn = document.getElementById('carousel-next-top');
+
+            if (totalSlides <= 1) {
+                prevBtn.style.display = 'none';
+                nextBtn.style.display = 'none';
+            } else {
+                prevBtn.style.display = 'flex';
+                nextBtn.style.display = 'flex';
+                prevBtn.disabled = false;
+                nextBtn.disabled = false;
+            }
+        }
+
+        function navigateMilestone(direction) {
+            let newIndex = currentMilestoneIndex + direction;
+
+            while (newIndex >= 0 && newIndex < milestones.length) {
+                if (milestones[newIndex].status !== 'pendiente') {
+                    currentMilestoneIndex = newIndex;
+                    currentSlide = 0;
+                    const milestone = milestones[newIndex];
+
+                    const modalContent = document.querySelector('.modal-content');
+                    modalContent.style.opacity = '0.5';
+                    modalContent.style.transform = 'scale(0.98)';
+
+                    setTimeout(() => {
+                        modalContent.className = 'modal-content status-' + milestone.status;
+
+                        const date = new Date(milestone.date);
+                        document.getElementById('modal-date').textContent = date.toLocaleDateString('es-ES', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                        });
+
+                        document.getElementById('modal-title').textContent = milestone.title;
+                        document.getElementById('modal-description').innerHTML = milestone.description.replace(/\n/g, '<br>');
+
+                        const statusElement = document.getElementById('modal-status');
+                        const statusLabels = {
+                            'pendiente': 'Pendiente',
+                            'en_proceso': 'En Proceso',
+                            'finalizado': 'Finalizado'
+                        };
+                        statusElement.textContent = statusLabels[milestone.status] || milestone.status;
+                        statusElement.className = 'modal-status status-' + milestone.status;
+
+                        loadCarousel(milestone);
+                        updateMilestoneNavButtons();
+                        updateCarouselNavButtons();
+
+                        modalContent.style.opacity = '1';
+                        modalContent.style.transform = 'scale(1)';
+                    }, 200);
+
+                    return;
+                }
+                newIndex += direction;
+            }
+        }
+
+        function updateMilestoneNavButtons() {
+            let hasPrevious = false;
+            for (let i = currentMilestoneIndex - 1; i >= 0; i--) {
+                if (milestones[i].status !== 'pendiente') {
+                    hasPrevious = true;
+                    break;
+                }
+            }
+
+            let hasNext = false;
+            for (let i = currentMilestoneIndex + 1; i < milestones.length; i++) {
+                if (milestones[i].status !== 'pendiente') {
+                    hasNext = true;
+                    break;
+                }
+            }
+
+            document.getElementById('prev-milestone-btn').disabled = !hasPrevious;
+            document.getElementById('next-milestone-btn').disabled = !hasNext;
+        }
+
+        function initSwipe(container) {
+            let touchStartX = 0;
+            let touchEndX = 0;
+            let touchStartY = 0;
+            let touchEndY = 0;
+            let isDragging = false;
+
+            container.addEventListener('touchstart', function(e) {
+                touchStartX = e.changedTouches[0].screenX;
+                touchStartY = e.changedTouches[0].screenY;
+                isDragging = true;
+                container.classList.add('dragging');
+            }, {
+                passive: true
+            });
+
+            container.addEventListener('touchmove', function(e) {
+                if (!isDragging) return;
+                touchEndX = e.changedTouches[0].screenX;
+                touchEndY = e.changedTouches[0].screenY;
+
+                const deltaX = Math.abs(touchEndX - touchStartX);
+                const deltaY = Math.abs(touchEndY - touchStartY);
+
+                if (deltaX > deltaY) {
+                    e.preventDefault();
+                }
+            }, {
+                passive: false
+            });
+
+            container.addEventListener('touchend', function(e) {
+                if (!isDragging) return;
+                touchEndX = e.changedTouches[0].screenX;
+                touchEndY = e.changedTouches[0].screenY;
+                isDragging = false;
+                container.classList.remove('dragging');
+
+                handleSwipe();
+            }, {
+                passive: true
+            });
+
+            let mouseStartX = 0;
+            let isMouseDragging = false;
+
+            container.addEventListener('mousedown', function(e) {
+                mouseStartX = e.screenX;
+                isMouseDragging = true;
+                container.classList.add('dragging');
+                e.preventDefault();
+            });
+
+            container.addEventListener('mousemove', function(e) {
+                if (!isMouseDragging) return;
+                e.preventDefault();
+            });
+
+            container.addEventListener('mouseup', function(e) {
+                if (!isMouseDragging) return;
+                const mouseEndX = e.screenX;
+                isMouseDragging = false;
+                container.classList.remove('dragging');
+
+                const deltaX = mouseStartX - mouseEndX;
+
+                if (Math.abs(deltaX) > 50) {
+                    if (deltaX > 0) {
+                        changeSlide(1);
+                    } else {
+                        changeSlide(-1);
+                    }
+                }
+            });
+
+            container.addEventListener('mouseleave', function() {
+                if (isMouseDragging) {
+                    isMouseDragging = false;
+                    container.classList.remove('dragging');
+                }
+            });
+
+            function handleSwipe() {
+                const deltaX = touchStartX - touchEndX;
+                const deltaY = Math.abs(touchStartY - touchEndY);
+
+                if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > deltaY) {
+                    if (deltaX > 0) {
+                        changeSlide(1);
+                    } else {
+                        changeSlide(-1);
+                    }
+                }
+            }
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeMilestoneModal();
+            }
+            if (document.getElementById('milestoneModal').classList.contains('active')) {
+                if (e.key === 'ArrowLeft') {
+                    changeSlide(-1);
+                } else if (e.key === 'ArrowRight') {
+                    changeSlide(1);
+                }
+            }
+        });
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('milestoneModal');
+            if (event.target == modal) {
+                closeMilestoneModal();
+            }
+        }
+    </script>
 </body>
 </html>
