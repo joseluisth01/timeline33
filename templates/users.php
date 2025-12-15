@@ -752,7 +752,7 @@
 
                 <form method="POST" action="<?php echo admin_url('admin-post.php'); ?>">
                     <input type="hidden" name="action" value="timeline_create_user">
-                    <?php wp_nonce_field('timeline_create_user', 'timeline_create_user_nonce'); ?>
+                    <?php Timeline_Nonce::get_instance()->field('timeline_create_user'); ?>
 
                     <div class="form-group">
                         <label for="username">Usuario</label>
@@ -916,7 +916,7 @@
             <form id="change-password-form" method="POST" action="<?php echo admin_url('admin-post.php'); ?>">
                 <input type="hidden" name="action" value="timeline_admin_change_password">
                 <input type="hidden" id="target_user_id" name="target_user_id" value="">
-                <?php wp_nonce_field('timeline_admin_change_password', 'timeline_admin_change_password_nonce'); ?>
+                <?php Timeline_Nonce::get_instance()->field('timeline_admin_change_password'); ?>
 
                 <div class="form-group">
                     <label>Usuario</label>
@@ -979,9 +979,9 @@
 
         // Eliminar usuario
         function deleteUser(userId, username) {
-            if (confirm('¿Estás seguro de eliminar al usuario "' + username + '"?\n\nEsta acción no se puede deshacer.')) {
-                window.location.href = '<?php echo admin_url('admin-post.php'); ?>?action=timeline_delete_user&user_id=' + userId + '&_wpnonce=<?php echo wp_create_nonce('timeline_delete_user'); ?>';
-            }
+            if (confirm('...')) {
+        window.location.href = '<?php echo admin_url('admin-post.php'); ?>?action=timeline_delete_user&user_id=' + userId + '&_timeline_nonce=<?php echo Timeline_Nonce::get_instance()->get('timeline_delete_user'); ?>';
+    }
         }
 
         // Abrir modal de cambiar contraseña

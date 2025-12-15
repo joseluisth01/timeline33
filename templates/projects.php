@@ -315,7 +315,7 @@
             text-decoration: none;
             text-align: center;
             display: flex;
-    align-items: center;
+            align-items: center;
         }
 
         .btn-small:hover {
@@ -676,7 +676,7 @@
                 `Esta acción NO se puede deshacer.`;
 
             if (confirm(confirmMessage)) {
-                window.location.href = '<?php echo admin_url('admin-post.php'); ?>?action=timeline_delete_project&project_id=' + projectId + '&_wpnonce=<?php echo wp_create_nonce('timeline_delete_project'); ?>';
+                window.location.href = '<?php echo admin_url('admin-post.php'); ?>?action=timeline_delete_project&project_id=' + projectId + '&_timeline_nonce=<?php echo Timeline_Nonce::get_instance()->get('timeline_delete_project'); ?>';
             }
         }
     </script>

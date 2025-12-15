@@ -391,7 +391,7 @@ $page_title = $is_edit ? 'Editar Proyecto' : 'Nuevo Proyecto';
                 <?php if ($is_edit): ?>
                     <input type="hidden" name="project_id" value="<?php echo $project->id; ?>">
                 <?php endif; ?>
-                <?php wp_nonce_field('timeline_project_form', 'timeline_project_nonce'); ?>
+                <?php Timeline_Nonce::get_instance()->field('timeline_project_form'); ?>
 
                 <!-- Información Básica -->
                 <div class="form-section">
