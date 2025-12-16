@@ -632,7 +632,7 @@
 
             <form method="POST" action="<?php echo admin_url('admin-post.php'); ?>">
                 <input type="hidden" name="action" value="timeline_change_password">
-                <?php Timeline_Nonce::get_instance()->field('timeline_change_password'); ?>
+                <?php wp_nonce_field('timeline_change_password', 'timeline_change_password_nonce'); ?>
 
                 <div class="form-group">
                     <label for="current_password">Contraseña Actual</label>

@@ -1,7 +1,9 @@
 <?php
 
 /**
- * Template: Gestión de Proyectos (Solo Admin/Super Admin)
+ * Template: Gestión de Usuarios (Solo Admin/Super Admin)
+ * Archivo: templates/users.php
+ * ACTUALIZADO: Con eliminación y cambio de contraseña
  */
 ?>
 <!DOCTYPE html>
@@ -10,7 +12,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Proyectos - Timeline</title>
+    <title>Gestión de Usuarios - Timeline</title>
     <style>
         * {
             margin: 0;
@@ -19,7 +21,7 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
             background: #0a0a0a;
             color: #ffffff;
         }
@@ -149,9 +151,6 @@
         }
 
         .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             margin-bottom: 50px;
         }
 
@@ -160,25 +159,6 @@
             font-weight: 200;
             color: rgba(255, 255, 255, 0.95);
             letter-spacing: 1px;
-        }
-
-        .btn-primary {
-            padding: 14px 30px;
-            background: rgba(253, 196, 37, 0.15);
-            color: #FDC425;
-            border: 1px solid #FDC425;
-            font-size: 11px;
-            font-weight: 400;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .btn-primary:hover {
-            background: rgba(253, 196, 37, 0.25);
         }
 
         .alert {
@@ -201,167 +181,349 @@
             border-color: rgba(255, 107, 107, 0.5);
         }
 
-        .projects-grid {
+        .grid-2 {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-            gap: 30px;
-            margin-top: 40px;
+            grid-template-columns: 450px 1fr;
+            gap: 40px;
         }
 
-        .project-card {
+        .card {
             background: rgba(255, 255, 255, 0.02);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            transition: all 0.3s;
+            padding: 50px 40px;
             overflow: hidden;
         }
 
-        .project-card:hover {
-            border-color: rgba(253, 196, 37, 0.3);
-            background: rgba(255, 255, 255, 0.03);
-        }
-
-        .project-image {
-            width: 100%;
-            height: 250px;
-            object-fit: cover;
-            display: block;
-        }
-
-        .project-content {
-            padding: 30px;
-        }
-
-        .project-title {
+        .card h2 {
             font-size: 20px;
             font-weight: 300;
             color: rgba(255, 255, 255, 0.9);
-            margin-bottom: 10px;
+            margin-bottom: 40px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .form-group {
+            margin-bottom: 35px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 300;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 14px 0;
+            background: black;
+            border: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 300;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-bottom-color: rgba(200, 150, 100, 0.6);
+        }
+
+        .form-group select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='rgba(255,255,255,0.4)' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right center;
+            padding-right: 20px;
+        }
+
+        .form-group select option {
+            background: #1a1a1a;
+            color: #ffffff;
+        }
+
+        .help-text {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.3);
+            margin-top: 8px;
             letter-spacing: 1px;
         }
 
-        .project-address {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.4);
-            margin-bottom: 20px;
-            letter-spacing: 0.5px;
-        }
-
-        .project-dates {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 20px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .project-date {
-            flex: 1;
-        }
-
-        .project-date-label {
-            font-size: 9px;
-            color: rgba(255, 255, 255, 0.4);
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2px;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-bottom: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
         }
 
-        .project-date-value {
+        .btn-primary:hover {
+            background: rgba(200, 150, 100, 0.15);
+            border-color: rgba(200, 150, 100, 0.5);
+        }
+
+        .info-box {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 20px;
+            margin-top: 30px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.4);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            letter-spacing: 0.5px;
+            line-height: 1.6;
+        }
+
+        /* Tabla con scroll horizontal en móvil */
+        .table-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            width: 100%;
+            position: relative;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+
+        thead {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        th {
+            padding: 20px 15px;
+            text-align: left;
+            font-weight: 300;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        td {
+            padding: 25px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             font-size: 13px;
-            color: rgba(255, 255, 255, 0.8);
+            color: rgba(255, 255, 255, 0.7);
             font-weight: 300;
         }
 
-        .project-clients {
-            margin-bottom: 20px;
+        tbody tr {
+            transition: background 0.3s;
         }
 
-        .project-clients-label {
+        tbody tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .badge {
+            padding: 6px 14px;
             font-size: 9px;
-            color: rgba(255, 255, 255, 0.4);
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-bottom: 10px;
-        }
-
-        .client-tag {
-            display: inline-block;
-            padding: 6px 12px;
-            background: rgba(253, 196, 37, 0.1);
-            color: #FDC425;
-            font-size: 10px;
-            letter-spacing: 1px;
-            margin-right: 8px;
-            margin-bottom: 8px;
-        }
-
-        .project-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn-small {
-            flex: 1;
-            padding: 10px;
-            font-size: 10px;
+            font-weight: 400;
             letter-spacing: 1.5px;
             text-transform: uppercase;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: transparent;
-            color: rgba(255, 255, 255, 0.7);
-            cursor: pointer;
-            transition: all 0.3s;
-            text-decoration: none;
-            text-align: center;
-            display: flex;
-            align-items: center;
+            border: 1px solid;
+            white-space: nowrap;
         }
 
-        .btn-small:hover {
-            border-color: rgba(253, 196, 37, 0.5);
-            color: #FDC425;
+        .badge-red {
+            background: rgba(255, 107, 107, 0.1);
+            color: rgba(255, 107, 107, 0.9);
+            border-color: rgba(255, 107, 107, 0.3);
+        }
+
+        .badge-blue {
+            background: rgba(0, 123, 255, 0.1);
+            color: rgba(0, 123, 255, 0.9);
+            border-color: rgba(0, 123, 255, 0.3);
+        }
+
+        .badge-green {
+            background: rgba(40, 167, 69, 0.1);
+            color: rgba(40, 167, 69, 0.9);
+            border-color: rgba(40, 167, 69, 0.3);
         }
 
         .empty-state {
             text-align: center;
-            padding: 100px 20px;
+            padding: 80px 20px;
             color: rgba(255, 255, 255, 0.3);
         }
 
         .empty-state p {
-            font-size: 14px;
+            font-size: 12px;
             letter-spacing: 1px;
-            margin-bottom: 30px;
+            text-transform: uppercase;
         }
 
-        .project-status-badge {
-            display: inline-block;
-            padding: 8px 16px;
-            font-size: 10px;
-            font-weight: 600;
+        .roles-info {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 30px;
+            margin-top: 40px;
+            border-left: 1px solid rgba(200, 150, 100, 0.3);
+        }
+
+        .roles-info h3 {
+            margin-top: 0;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 13px;
+            margin-bottom: 20px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .roles-info ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .roles-info li {
+            padding: 12px 0;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-weight: 300;
+            letter-spacing: 0.5px;
+            line-height: 1.6;
+        }
+
+        #role-filter {
+            background: black !important;
+        }
+
+        .roles-info li:last-child {
+            border-bottom: none;
+        }
+
+        .filter-group select {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 8px 30px 8px 15px;
+            font-size: 11px;
             letter-spacing: 1.5px;
             text-transform: uppercase;
-            margin-bottom: 15px;
-            border-radius: 4px;
+            cursor: pointer;
+            appearance: none;
+            background-image: url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'rgba(255,255,255,0.4)\' d=\'M6 9L1 4h10z\'/%3E%3C/svg%3E');
+            background-repeat: no-repeat;
+            background-position: right 10px center;
         }
 
-        .project-status-badge.en_proceso {
-            background: rgba(253, 196, 37, 0.15);
-            color: #FDC425;
-            border: 1px solid rgba(253, 196, 37, 0.3);
+        /* NUEVOS ESTILOS PARA ACCIONES */
+        .user-actions {
+            display: flex;
+            gap: 8px;
         }
 
-        .project-status-badge.pendiente {
-            background: rgba(237, 237, 237, 0.1);
-            color: #EDEDED;
-            border: 1px solid rgba(237, 237, 237, 0.2);
+        .btn-action {
+            padding: 8px 14px;
+            font-size: 9px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            border: 1px solid;
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
         }
 
-        .project-status-badge.finalizado {
-            background: rgba(255, 222, 136, 0.15);
-            color: #FFDE88;
-            border: 1px solid rgba(255, 222, 136, 0.3);
+        .btn-change-password {
+            color: rgba(0, 123, 255, 0.9);
+            border-color: rgba(0, 123, 255, 0.3);
+        }
+
+        .btn-change-password:hover {
+            background: rgba(0, 123, 255, 0.1);
+        }
+
+        .btn-delete {
+            color: rgba(255, 107, 107, 0.9);
+            border-color: rgba(255, 107, 107, 0.3);
+        }
+
+        .btn-delete:hover {
+            background: rgba(255, 107, 107, 0.1);
+        }
+
+        .btn-action:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* MODAL PARA CAMBIAR CONTRASEÑA */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 0;
+        }
+
+        .modal-content {
+            background: #0a0a0a;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 90%;
+            max-width: 600px;
+            padding: 50px;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 30px;
+            color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: color 0.3s;
+            background: none;
+            border: none;
+        }
+
+        .modal-close:hover {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .modal h2 {
+            font-size: 24px;
+            font-weight: 300;
+            margin-bottom: 30px;
+            letter-spacing: 2px;
+        }
+
+        @media (max-width: 1200px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width: 768px) {
@@ -453,18 +615,35 @@
                 padding: 40px 20px;
             }
 
-            .page-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 20px;
-            }
-
             .page-header h1 {
                 font-size: 32px;
             }
 
-            .projects-grid {
-                grid-template-columns: 1fr;
+            .card {
+                padding: 30px 20px;
+            }
+
+            .table-wrapper {
+                width: 100%;
+                overflow-x: auto;
+                margin: 0;
+                padding: 0;
+            }
+
+            table {
+                min-width: 800px;
+            }
+
+            /* Indicador de scroll en móvil */
+            .table-wrapper::after {
+                content: '← Desliza para ver más →';
+                display: block;
+                text-align: center;
+                padding: 15px;
+                font-size: 11px;
+                color: rgba(255, 255, 255, 0.3);
+                letter-spacing: 1px;
+                min-width: 800px;
             }
         }
     </style>
@@ -483,9 +662,8 @@
 
         <div class="navbar-menu" id="navbarMenu">
             <a href="<?php echo home_url('/timeline-dashboard'); ?>">Dashboard</a>
-            <a href="<?php echo home_url('/timeline-proyectos'); ?>" class="active">Proyectos</a>
-            <a href="<?php echo home_url('/timeline-usuarios'); ?>">Usuarios</a>
-            <a href="<?php echo home_url('/timeline-audit-log'); ?>">Auditoría</a>
+            <a href="<?php echo home_url('/timeline-proyectos'); ?>">Proyectos</a>
+            <a href="<?php echo home_url('/timeline-usuarios'); ?>" class="active">Usuarios</a>
             <a href="<?php echo home_url('/timeline-perfil'); ?>">Perfil</a>
         </div>
 
@@ -504,22 +682,7 @@
 
     <div class="container">
         <div class="page-header">
-            <h1>Proyectos</h1>
-            <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
-                <select id="client-filter" style="padding: 12px 40px 12px 20px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; appearance: none; background-image: url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'rgba(255,255,255,0.4)\' d=\'M6 9L1 4h10z\'/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 15px center; background-color: rgba(0,0,0,0.3);">
-                    <option value="all">Todos los proyectos</option>
-                    <option value="unassigned">Sin clientes asignados</option>
-                    <?php
-                    if ($projects_class) {
-                        $all_clients = $projects_class->get_available_clients();
-                        foreach ($all_clients as $client) {
-                            echo '<option value="' . esc_attr($client->id) . '">' . esc_html($client->username) . '</option>';
-                        }
-                    }
-                    ?>
-                </select>
-                <a href="<?php echo home_url('/timeline-proyecto-nuevo'); ?>" class="btn-primary">+ Nuevo Proyecto</a>
-            </div>
+            <h1>Gestión de Usuarios</h1>
         </div>
 
         <?php if (isset($_GET['success'])): ?>
@@ -527,13 +690,13 @@
                 <?php
                 switch ($_GET['success']) {
                     case 'created':
-                        echo 'Proyecto creado correctamente.';
-                        break;
-                    case 'updated':
-                        echo 'Proyecto actualizado correctamente.';
+                        echo 'Usuario creado correctamente. Se ha enviado un email con las credenciales.';
                         break;
                     case 'deleted':
-                        echo 'Proyecto eliminado correctamente.';
+                        echo 'Usuario eliminado correctamente.';
+                        break;
+                    case 'password_changed':
+                        echo 'Contraseña cambiada correctamente. Se ha enviado un email al usuario.';
                         break;
                 }
                 ?>
@@ -542,80 +705,241 @@
 
         <?php if (isset($_GET['error'])): ?>
             <div class="alert alert-error">
-                Error al procesar la solicitud.
+                <?php
+                switch ($_GET['error']) {
+                    case 'failed':
+                        echo 'Error al crear el usuario. Es posible que el nombre de usuario ya exista.';
+                        break;
+                    case 'permission':
+                        echo 'No tienes permisos para realizar esta acción.';
+                        break;
+                    case 'cannot_delete_self':
+                        echo 'No puedes eliminar tu propio usuario.';
+                        break;
+                    case 'cannot_delete_super_admin':
+                        echo 'No puedes eliminar al super administrador.';
+                        break;
+                    case 'delete_failed':
+                        echo 'Error al eliminar el usuario.';
+                        break;
+                    case 'password_change_failed':
+                        echo 'Error al cambiar la contraseña.';
+                        break;
+                    case 'password_mismatch':
+                        echo 'Las contraseñas no coinciden.';
+                        break;
+                    case 'password_length':
+                        echo 'La contraseña debe tener al menos 8 caracteres.';
+                        break;
+                    case 'user_not_found':
+                        echo 'Usuario no encontrado.';
+                        break;
+                    case 'cannot_change_super_admin':
+                        echo 'No puedes cambiar la contraseña del super administrador.';
+                        break;
+                    case 'not_found':
+                        echo 'Usuario no encontrado.';
+                        break;
+                }
+                ?>
             </div>
         <?php endif; ?>
 
-        <div class="projects-grid">
-            <?php if (count($projects) > 0): ?>
-                <?php foreach ($projects as $project): ?>
-                    <?php
-                    $clients = $projects_class->get_project_clients($project->id);
-                    $image = $project->featured_image ? $project->featured_image : 'https://via.placeholder.com/400x250/1a1a1a/666666?text=Sin+Imagen';
+        <div class="grid-2">
+            <!-- Formulario de crear usuario -->
+            <div class="card">
+                <h2>Crear Usuario</h2>
 
-                    $status_labels = [
-                        'en_proceso' => 'EN PROCESO',
-                        'pendiente' => 'PENDIENTE',
-                        'finalizado' => 'FINALIZADO'
-                    ];
+                <form method="POST" action="<?php echo admin_url('admin-post.php'); ?>">
+                    <input type="hidden" name="action" value="timeline_create_user">
+                    <?php wp_nonce_field('timeline_create_user', 'timeline_create_user_nonce'); ?>
 
-                    $project_status = isset($project->project_status) ? $project->project_status : 'en_proceso';
-                    $status_label = isset($status_labels[$project_status]) ? $status_labels[$project_status] : 'EN PROCESO';
-                    $status_class = $project_status;
-                    ?>
-                    <div class="project-card">
-                        <img src="<?php echo esc_url($image); ?>" alt="<?php echo esc_attr($project->name); ?>" class="project-image">
-                        <div class="project-content">
-                            <span class="project-status-badge <?php echo esc_attr($status_class); ?>">
-                                <?php echo esc_html($status_label); ?>
-                            </span>
-                            <h3 class="project-title"><?php echo esc_html($project->name); ?></h3>
-                            <p class="project-address"><?php echo esc_html($project->address); ?></p>
-
-                            <div class="project-dates">
-                                <div class="project-date">
-                                    <div class="project-date-label">Inicio</div>
-                                    <div class="project-date-value"><?php echo date('d/m/Y', strtotime($project->start_date)); ?></div>
-                                </div>
-                                <div class="project-date">
-                                    <div class="project-date-label">Fin Previsto</div>
-                                    <div class="project-date-value"><?php echo date('d/m/Y', strtotime($project->end_date)); ?></div>
-                                </div>
-                            </div>
-
-                            <?php if (!empty($clients)): ?>
-                                <div class="project-clients">
-                                    <div class="project-clients-label">Clientes Asignados</div>
-                                    <?php
-                                    $client_ids = array();
-                                    foreach ($clients as $client):
-                                        $client_ids[] = $client->id;
-                                    ?>
-                                        <span class="client-tag"><?php echo esc_html($client->username); ?></span>
-                                    <?php endforeach; ?>
-                                </div>
-                                <?php $client_ids_str = !empty($client_ids) ? implode(',', $client_ids) : 'none'; ?>
-                            <?php else: ?>
-                                <?php $client_ids_str = 'none'; ?>
-                            <?php endif; ?>
-
-                            <div class="project-actions">
-                                <a href="<?php echo home_url('/timeline-proyecto-admin/' . $project->id); ?>" class="btn-small">Timeline</a>
-                                <a href="<?php echo home_url('/timeline-documentos/' . $project->id); ?>" class="btn-small">Documentos</a>
-                                <a href="<?php echo home_url('/timeline-proyecto-vista-previa/' . $project->id); ?>" class="btn-small" style="background: rgba(253, 196, 37, 0.1); border-color: rgba(253, 196, 37, 0.3); color: #FDC425;">👁️ Vista Previa</a>
-                                <a href="<?php echo home_url('/timeline-proyecto-editar/' . $project->id); ?>" class="btn-small">Editar</a>
-                                <button class="btn-small btn-delete" onclick="deleteProject(<?php echo $project->id; ?>, '<?php echo esc_js($project->name); ?>')">Eliminar</button>
-                            </div>
-                        </div>
-                        <input type="hidden" class="project-clients-data" value="<?php echo esc_attr($client_ids_str); ?>">
+                    <div class="form-group">
+                        <label for="username">Usuario</label>
+                        <input type="text" id="username" name="username" required>
+                        <div class="help-text">Sin espacios, letras, números y guiones</div>
                     </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <div class="empty-state">
-                    <p>No hay proyectos creados</p>
-                    <a href="<?php echo home_url('/timeline-proyecto-nuevo'); ?>" class="btn-primary">Crear Primer Proyecto</a>
+
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required>
+                        <div class="help-text">Se enviará la contraseña a este correo</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="role">Rol</label>
+                        <select id="role" name="role" required>
+                            <option value="">Seleccionar...</option>
+                            <?php if ($current_user->role === 'super_admin'): ?>
+                                <option value="administrador">Administrador</option>
+                            <?php endif; ?>
+                            <option value="cliente">Cliente</option>
+                        </select>
+                        <div class="help-text">
+                            <?php if ($current_user->role === 'super_admin'): ?>
+                                Define los permisos del usuario
+                            <?php else: ?>
+                                Solo puedes crear clientes
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary">Crear Usuario</button>
+
+                    <div class="info-box">
+                        La contraseña se generará automáticamente y se enviará por email al usuario.
+                    </div>
+                </form>
+            </div>
+
+            <!-- Lista de usuarios -->
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px;">
+                    <h2 style="margin: 0;">Usuarios</h2>
+                    <div class="filter-group">
+                        <select id="role-filter">
+                            <option value="all">Todos</option>
+                            <option value="super_admin">Super Admin</option>
+                            <option value="administrador">Administradores</option>
+                            <option value="cliente">Clientes</option>
+                        </select>
+                    </div>
                 </div>
-            <?php endif; ?>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Usuario</th>
+                                <th>Email</th>
+                                <th>Rol</th>
+                                <th>Creación</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body">
+                            <?php if (count($users) > 0): ?>
+                                <?php foreach ($users as $user): ?>
+                                    <tr data-role="<?php echo esc_attr($user->role); ?>">
+                                        <td><?php echo esc_html($user->username); ?></td>
+                                        <td><?php echo esc_html($user->email); ?></td>
+                                        <td>
+                                            <?php
+                                            switch ($user->role) {
+                                                case 'super_admin':
+                                                    echo '<span class="badge badge-red">Super Admin</span>';
+                                                    break;
+                                                case 'administrador':
+                                                    echo '<span class="badge badge-blue">Administrador</span>';
+                                                    break;
+                                                case 'cliente':
+                                                    echo '<span class="badge badge-green">Cliente</span>';
+                                                    break;
+                                            }
+                                            ?>
+                                        </td>
+                                        <td><?php echo date('d/m/Y', strtotime($user->created_at)); ?></td>
+                                        <td>
+                                            <div class="user-actions">
+                                                <?php
+                                                // LÓGICA DE PERMISOS:
+                                                // - Super Admin: puede gestionar administradores y clientes (pero no a sí mismo ni a otros super admins)
+                                                // - Administrador: solo puede gestionar clientes
+
+                                                $can_manage = false;
+
+                                                if ($current_user->role === 'super_admin') {
+                                                    // Super admin puede gestionar a todos excepto super_admins y a sí mismo
+                                                    if ($user->role !== 'super_admin' && $user->id != $current_user->id) {
+                                                        $can_manage = true;
+                                                    }
+                                                } elseif ($current_user->role === 'administrador') {
+                                                    // Administrador solo puede gestionar clientes
+                                                    if ($user->role === 'cliente') {
+                                                        $can_manage = true;
+                                                    }
+                                                }
+                                                ?>
+
+                                                <?php if ($can_manage): ?>
+                                                    <button class="btn-action btn-change-password"
+                                                        onclick="openChangePasswordModal(<?php echo $user->id; ?>, '<?php echo esc_js($user->username); ?>')">
+                                                        Cambiar Pass
+                                                    </button>
+                                                    <button class="btn-action btn-delete"
+                                                        onclick="deleteUser(<?php echo $user->id; ?>, '<?php echo esc_js($user->username); ?>')">
+                                                        Eliminar
+                                                    </button>
+                                                <?php else: ?>
+                                                    <span style="color: rgba(255,255,255,0.3); font-size: 11px;">—</span>
+                                                <?php endif; ?>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="5">
+                                        <div class="empty-state">
+                                            <p>No hay usuarios</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="roles-info">
+                    <h3>Información</h3>
+                    <ul>
+                        <?php if ($current_user->role === 'super_admin'): ?>
+                            <li>Super Admin — Acceso total al sistema y gestión de usuarios</li>
+                            <li>Administrador — Gestión de proyectos y creación de clientes</li>
+                            <li>Cliente — Visualización de proyectos asignados</li>
+                        <?php else: ?>
+                            <li>Administrador — Puedes crear y gestionar clientes</li>
+                            <li>Cliente — Visualización de proyectos asignados</li>
+                        <?php endif; ?>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para cambiar contraseña -->
+    <div id="changePasswordModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeChangePasswordModal()">&times;</button>
+            <h2>Cambiar Contraseña</h2>
+
+            <form id="change-password-form" method="POST" action="<?php echo admin_url('admin-post.php'); ?>">
+                <input type="hidden" name="action" value="timeline_admin_change_password">
+                <input type="hidden" id="target_user_id" name="target_user_id" value="">
+                <?php wp_nonce_field('timeline_admin_change_password', 'timeline_admin_change_password_nonce'); ?>
+
+                <div class="form-group">
+                    <label>Usuario</label>
+                    <div id="modal-username" style="padding: 14px 0; color: rgba(255,255,255,0.8); font-size: 16px;"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="new_password">Nueva Contraseña *</label>
+                    <input type="password" id="new_password" name="new_password" required>
+                    <div class="help-text">Mínimo 8 caracteres</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm_password">Confirmar Contraseña *</label>
+                    <input type="password" id="confirm_password" name="confirm_password" required>
+                </div>
+
+                <button type="submit" class="btn-primary">Cambiar Contraseña</button>
+
+                <div class="info-box">
+                    Se enviará un email automático al usuario con la nueva contraseña.
+                </div>
+            </form>
         </div>
     </div>
 
@@ -639,44 +963,47 @@
             });
         });
 
-        // Filtro de proyectos por cliente
-        document.getElementById('client-filter').addEventListener('change', function() {
+        // Filtro de usuarios
+        document.getElementById('role-filter').addEventListener('change', function() {
             const filterValue = this.value;
-            const projectCards = document.querySelectorAll('.project-card');
+            const rows = document.querySelectorAll('#users-table-body tr[data-role]');
 
-            projectCards.forEach(card => {
-                const clientsData = card.querySelector('.project-clients-data');
-                if (!clientsData) return;
-
-                const clientIds = clientsData.value;
-
+            rows.forEach(row => {
                 if (filterValue === 'all') {
-                    card.style.display = '';
-                } else if (filterValue === 'unassigned') {
-                    card.style.display = (clientIds === 'none') ? '' : 'none';
+                    row.style.display = '';
                 } else {
-                    if (clientIds === 'none') {
-                        card.style.display = 'none';
-                    } else {
-                        const hasClient = clientIds.split(',').includes(filterValue);
-                        card.style.display = hasClient ? '' : 'none';
-                    }
+                    row.style.display = row.getAttribute('data-role') === filterValue ? '' : 'none';
                 }
             });
         });
 
-        // NUEVA FUNCIÓN: Eliminar proyecto
-        function deleteProject(projectId, projectName) {
-            const confirmMessage = `¿Estás seguro de eliminar el proyecto "${projectName}"?\n\n` +
-                `⚠️ ESTA ACCIÓN ELIMINARÁ:\n` +
-                `• Todos los hitos del proyecto\n` +
-                `• Todas las imágenes de los hitos\n` +
-                `• Todos los documentos del proyecto\n` +
-                `• Asignaciones de clientes\n\n` +
-                `Esta acción NO se puede deshacer.`;
+        // Eliminar usuario
+        function deleteUser(userId, username) {
+            if (confirm('¿Estás seguro de eliminar al usuario "' + username + '"?\n\nEsta acción no se puede deshacer.')) {
+                window.location.href = '<?php echo admin_url('admin-post.php'); ?>?action=timeline_delete_user&user_id=' + userId + '&_wpnonce=<?php echo wp_create_nonce('timeline_delete_user'); ?>';
+            }
+        }
 
-            if (confirm(confirmMessage)) {
-                window.location.href = '<?php echo admin_url('admin-post.php'); ?>?action=timeline_delete_project&project_id=' + projectId + '&_timeline_nonce=<?php echo Timeline_Nonce::get_instance()->get('timeline_delete_project'); ?>';
+        // Abrir modal de cambiar contraseña
+        function openChangePasswordModal(userId, username) {
+            document.getElementById('target_user_id').value = userId;
+            document.getElementById('modal-username').textContent = username;
+            document.getElementById('changePasswordModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Cerrar modal de cambiar contraseña
+        function closeChangePasswordModal() {
+            document.getElementById('changePasswordModal').classList.remove('active');
+            document.getElementById('change-password-form').reset();
+            document.body.style.overflow = 'auto';
+        }
+
+        // Cerrar modal al hacer clic fuera
+        window.onclick = function(event) {
+            const modal = document.getElementById('changePasswordModal');
+            if (event.target == modal) {
+                closeChangePasswordModal();
             }
         }
     </script>

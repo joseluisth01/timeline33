@@ -1,7 +1,8 @@
 <?php
 /**
- * Sistema de Nonces Personalizado para Sesiones PHP
+ * Sistema de Nonces Personalizado MEJORADO para Sesiones PHP
  * Archivo: includes/class-nonce.php
+ * ARREGLADO: Ya no depende de token de sesión volátil
  */
 
 if (!defined('ABSPATH')) exit;
@@ -32,14 +33,15 @@ class Timeline_Nonce {
         // Obtener ID de usuario de la sesión
         $user_id = isset($_SESSION['timeline_user_id']) ? $_SESSION['timeline_user_id'] : 0;
         
-        // Obtener timestamp (válido por 12 horas)
-        $tick = ceil(time() / (12 * HOUR_IN_SECONDS));
+        // Obtener timestamp (válido por 24 horas - ventana más amplia)
+        $tick = ceil(time() / (24 * HOUR_IN_SECONDS));
         
-        // Generar token único
-        $token = $this->get_session_token();
+        // ✅ CAMBIO CLAVE: Ya no usar token de sesión volátil
+        // En su lugar, usar una combinación de user_id + action + tick + salt
+        $unique_string = $user_id . '|' . $action . '|' . $tick;
         
         // Crear hash
-        $hash = hash_hmac('sha256', "{$action}|{$user_id}|{$tick}|{$token}", $this->get_salt());
+        $hash = hash_hmac('sha256', $unique_string, $this->get_salt());
         
         return substr($hash, 0, 12);
     }
@@ -53,6 +55,7 @@ class Timeline_Nonce {
      */
     public function verify($nonce, $action = '') {
         if (empty($nonce)) {
+            error_log('Timeline Nonce: Nonce vacío');
             return false;
         }
         
@@ -64,42 +67,31 @@ class Timeline_Nonce {
         // Obtener ID de usuario de la sesión
         $user_id = isset($_SESSION['timeline_user_id']) ? $_SESSION['timeline_user_id'] : 0;
         
-        // Obtener token
-        $token = $this->get_session_token();
+        // DEBUG: Log para ver qué está pasando
+        error_log("Timeline Nonce Verify - User ID: {$user_id}, Action: {$action}, Nonce: {$nonce}");
         
-        // Verificar con timestamp actual y anterior (ventana de 24 horas)
-        $tick = ceil(time() / (12 * HOUR_IN_SECONDS));
+        // Verificar con timestamp actual y los 2 anteriores (ventana de 72 horas)
+        $tick = ceil(time() / (24 * HOUR_IN_SECONDS));
         
-        for ($i = 0; $i <= 1; $i++) {
+        for ($i = 0; $i <= 2; $i++) {
+            $unique_string = $user_id . '|' . $action . '|' . ($tick - $i);
             $expected = substr(
-                hash_hmac('sha256', "{$action}|{$user_id}|" . ($tick - $i) . "|{$token}", $this->get_salt()),
+                hash_hmac('sha256', $unique_string, $this->get_salt()),
                 0,
                 12
             );
             
+            // DEBUG
+            error_log("Timeline Nonce: Comparando - Esperado: {$expected}, Recibido: {$nonce}, Tick: " . ($tick - $i));
+            
             if (hash_equals($expected, $nonce)) {
+                error_log('Timeline Nonce: ✓ VERIFICACIÓN EXITOSA');
                 return true;
             }
         }
         
+        error_log('Timeline Nonce: ✗ VERIFICACIÓN FALLIDA');
         return false;
-    }
-    
-    /**
-     * Obtener o crear token de sesión
-     * 
-     * @return string Token de sesión
-     */
-    private function get_session_token() {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
-        }
-        
-        if (!isset($_SESSION['timeline_nonce_token'])) {
-            $_SESSION['timeline_nonce_token'] = bin2hex(random_bytes(32));
-        }
-        
-        return $_SESSION['timeline_nonce_token'];
     }
     
     /**
@@ -108,20 +100,34 @@ class Timeline_Nonce {
      * @return string Salt
      */
     private function get_salt() {
-        // Usar salt de WordPress si existe, si no crear uno
+        // Usar múltiples fuentes para crear un salt único y estable
+        $sources = array();
+        
+        // 1. Salt de WordPress si existe
         if (defined('NONCE_SALT')) {
-            return NONCE_SALT;
+            $sources[] = NONCE_SALT;
         }
         
+        // 2. Auth Key de WordPress
+        if (defined('AUTH_KEY')) {
+            $sources[] = AUTH_KEY;
+        }
+        
+        // 3. Salt almacenado en opciones (crear si no existe)
         $option_name = 'timeline_nonce_salt';
-        $salt = get_option($option_name);
+        $stored_salt = get_option($option_name);
         
-        if (!$salt) {
-            $salt = bin2hex(random_bytes(32));
-            update_option($option_name, $salt, false);
+        if (!$stored_salt) {
+            $stored_salt = bin2hex(random_bytes(32));
+            update_option($option_name, $stored_salt, false);
         }
+        $sources[] = $stored_salt;
         
-        return $salt;
+        // 4. URL del sitio (para hacer el salt único por instalación)
+        $sources[] = home_url();
+        
+        // Combinar todas las fuentes
+        return hash('sha256', implode('|', $sources));
     }
     
     /**
@@ -133,6 +139,10 @@ class Timeline_Nonce {
      */
     public function field($action = '', $name = '_timeline_nonce') {
         $nonce = $this->create($action);
+        
+        // DEBUG: Log del nonce generado
+        error_log("Timeline Nonce Field - Action: {$action}, Nonce generado: {$nonce}");
+        
         echo '<input type="hidden" name="' . esc_attr($name) . '" value="' . esc_attr($nonce) . '">';
     }
     
