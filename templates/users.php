@@ -750,7 +750,7 @@
             <div class="card">
                 <h2>Crear Usuario</h2>
 
-                <form method="POST" action="<?php echo admin_url('admin-post.php'); ?>">
+                <form method="POST" action="<?php echo home_url('/timeline-action/create-user'); ?>">
                     <input type="hidden" name="action" value="timeline_create_user">
                     <?php wp_nonce_field('timeline_create_user', 'timeline_create_user_nonce'); ?>
 
@@ -913,7 +913,7 @@
             <button class="modal-close" onclick="closeChangePasswordModal()">&times;</button>
             <h2>Cambiar Contraseña</h2>
 
-            <form id="change-password-form" method="POST" action="<?php echo admin_url('admin-post.php'); ?>">
+            <form id="change-password-form" method="POST" action="<?php echo home_url('/timeline-action/admin-change-password'); ?>">
                 <input type="hidden" name="action" value="timeline_admin_change_password">
                 <input type="hidden" id="target_user_id" name="target_user_id" value="">
                 <?php wp_nonce_field('timeline_admin_change_password', 'timeline_admin_change_password_nonce'); ?>
@@ -980,7 +980,7 @@
         // Eliminar usuario
         function deleteUser(userId, username) {
             if (confirm('¿Estás seguro de eliminar al usuario "' + username + '"?\n\nEsta acción no se puede deshacer.')) {
-                window.location.href = '<?php echo admin_url('admin-post.php'); ?>?action=timeline_delete_user&user_id=' + userId + '&_wpnonce=<?php echo wp_create_nonce('timeline_delete_user'); ?>';
+                window.location.href = '<?php echo home_url('/timeline-action/delete-user'); ?>?user_id=' + userId + '&_wpnonce=<?php echo wp_create_nonce('timeline_delete_user'); ?>';
             }
         }
 

@@ -386,7 +386,7 @@ $page_title = $is_edit ? 'Editar Proyecto' : 'Nuevo Proyecto';
         </div>
 
         <div class="form-container">
-            <form method="POST" action="<?php echo admin_url('admin-post.php'); ?>" id="project-form">
+            <form method="POST" action="<?php echo $is_edit ? home_url('/timeline-action/update-project') : home_url('/timeline-action/create-project'); ?>" id="project-form">
                 <input type="hidden" name="action" value="<?php echo $is_edit ? 'timeline_update_project' : 'timeline_create_project'; ?>">
                 <?php if ($is_edit): ?>
                     <input type="hidden" name="project_id" value="<?php echo $project->id; ?>">

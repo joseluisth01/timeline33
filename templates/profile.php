@@ -630,7 +630,7 @@
         <div class="card">
             <h2>Cambiar Contraseña</h2>
 
-            <form method="POST" action="<?php echo admin_url('admin-post.php'); ?>">
+            <form method="POST" action="<?php echo home_url('/timeline-action/change-password'); ?>">
                 <input type="hidden" name="action" value="timeline_change_password">
                 <?php wp_nonce_field('timeline_change_password', 'timeline_change_password_nonce'); ?>
 

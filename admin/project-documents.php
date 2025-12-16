@@ -434,7 +434,7 @@ $documents = $documents_class->get_project_documents($project_id);
             <span class="modal-close" onclick="closeUploadModal()">&times;</span>
             <h2>Subir Documento</h2>
             
-            <form id="upload-form" method="POST" action="<?php echo admin_url('admin-post.php'); ?>" enctype="multipart/form-data">
+            <form id="upload-form" method="POST" action="<?php echo home_url('/timeline-action/upload-document'); ?>" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="timeline_upload_document">
                 <input type="hidden" name="project_id" value="<?php echo $project_id; ?>">
                 <?php wp_nonce_field('timeline_document', 'timeline_document_nonce'); ?>
@@ -477,7 +477,7 @@ $documents = $documents_class->get_project_documents($project_id);
         
         function deleteDocument(id) {
             if (confirm('¿Estás seguro de eliminar este documento?')) {
-                window.location.href = '<?php echo admin_url('admin-post.php'); ?>?action=timeline_delete_document&document_id=' + id + '&project_id=<?php echo $project_id; ?>&_wpnonce=<?php echo wp_create_nonce('delete_document'); ?>';
+                window.location.href = '<?php echo home_url('/timeline-action/delete-document'); ?>?document_id=' + id + '&project_id=<?php echo $project_id; ?>&_wpnonce=<?php echo wp_create_nonce('delete_document'); ?>';
             }
         }
         

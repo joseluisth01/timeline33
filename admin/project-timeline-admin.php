@@ -521,7 +521,7 @@ $milestones = $milestones_class->get_project_milestones_with_images($project_id)
             <span class="modal-close" onclick="closeMilestoneModal()">&times;</span>
             <h2 id="modal-title">Nuevo Hito</h2>
             
-            <form id="milestone-form" method="POST" action="<?php echo admin_url('admin-post.php'); ?>">
+            <form id="milestone-form" method="POST" action="<?php echo home_url('/timeline-action/save-milestone'); ?>">
                 <input type="hidden" name="action" value="timeline_save_milestone">
                 <input type="hidden" name="project_id" value="<?php echo $project_id; ?>">
                 <input type="hidden" id="milestone_id" name="milestone_id" value="">
@@ -665,7 +665,7 @@ $milestones = $milestones_class->get_project_milestones_with_images($project_id)
         
         function deleteMilestone(id) {
             if (confirm('¿Estás seguro de eliminar este hito?')) {
-                window.location.href = '<?php echo admin_url('admin-post.php'); ?>?action=timeline_delete_milestone&milestone_id=' + id + '&project_id=<?php echo $project_id; ?>&_wpnonce=<?php echo wp_create_nonce('delete_milestone'); ?>';
+                window.location.href = '<?php echo home_url('/timeline-action/delete-milestone'); ?>?milestone_id=' + id + '&project_id=<?php echo $project_id; ?>&_wpnonce=<?php echo wp_create_nonce('delete_milestone'); ?>';
             }
         }
         

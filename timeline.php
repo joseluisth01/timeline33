@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Plugin Name: Timeline - Sistema de Gestión de Proyectos
  * Description: Sistema completo de gestión de proyectos con línea de tiempo, hitos y auditoría
@@ -14,14 +15,14 @@ define('TIMELINE_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('TIMELINE_PLUGIN_URL', plugin_dir_url(__FILE__));
 
 // IMPORTANTE: Iniciar sesión lo más temprano posible
-add_action('plugins_loaded', function() {
+add_action('plugins_loaded', function () {
     if (!session_id()) {
         // Configurar parámetros de sesión para que funcionen en modo incógnito
         ini_set('session.cookie_httponly', 1);
         ini_set('session.use_only_cookies', 1);
         ini_set('session.cookie_lifetime', 0);
         ini_set('session.cookie_samesite', 'Lax');
-        
+
         // Iniciar sesión
         session_start();
     }
@@ -156,6 +157,7 @@ class Timeline_Plugin
 
     public function add_rewrite_rules()
     {
+        // Páginas de visualización
         add_rewrite_rule('^login-proyectos/?$', 'index.php?timeline_page=login', 'top');
         add_rewrite_rule('^timeline-logout/?$', 'index.php?timeline_page=logout', 'top');
         add_rewrite_rule('^timeline-dashboard/?$', 'index.php?timeline_page=dashboard', 'top');
@@ -170,7 +172,19 @@ class Timeline_Plugin
         add_rewrite_rule('^timeline-proyecto-vista-previa/([0-9]+)/?$', 'index.php?timeline_page=project_preview&timeline_id=$matches[1]', 'top');
         add_rewrite_rule('^timeline-documentos/([0-9]+)/?$', 'index.php?timeline_page=project_documents&timeline_id=$matches[1]', 'top');
         add_rewrite_rule('^timeline-audit-log/?$', 'index.php?timeline_page=audit_log', 'top');
-        add_rewrite_rule('^timeline-proyecto-vista-previa/([0-9]+)/?$', 'index.php?timeline_page=project_preview&timeline_id=$matches[1]', 'top');
+
+        // ✅ NUEVO: Endpoints para acciones (reemplazan admin-post.php)
+        add_rewrite_rule('^timeline-action/create-user/?$', 'index.php?timeline_page=action_create_user', 'top');
+        add_rewrite_rule('^timeline-action/delete-user/?$', 'index.php?timeline_page=action_delete_user', 'top');
+        add_rewrite_rule('^timeline-action/change-password/?$', 'index.php?timeline_page=action_change_password', 'top');
+        add_rewrite_rule('^timeline-action/admin-change-password/?$', 'index.php?timeline_page=action_admin_change_password', 'top');
+        add_rewrite_rule('^timeline-action/create-project/?$', 'index.php?timeline_page=action_create_project', 'top');
+        add_rewrite_rule('^timeline-action/update-project/?$', 'index.php?timeline_page=action_update_project', 'top');
+        add_rewrite_rule('^timeline-action/delete-project/?$', 'index.php?timeline_page=action_delete_project', 'top');
+        add_rewrite_rule('^timeline-action/save-milestone/?$', 'index.php?timeline_page=action_save_milestone', 'top');
+        add_rewrite_rule('^timeline-action/delete-milestone/?$', 'index.php?timeline_page=action_delete_milestone', 'top');
+        add_rewrite_rule('^timeline-action/upload-document/?$', 'index.php?timeline_page=action_upload_document', 'top');
+        add_rewrite_rule('^timeline-action/delete-document/?$', 'index.php?timeline_page=action_delete_document', 'top');
     }
 
     public function init()
@@ -188,7 +202,7 @@ class Timeline_Plugin
         if (session_status() !== PHP_SESSION_ACTIVE) {
             return false;
         }
-        
+
         return isset($_SESSION['timeline_user_id']) && !empty($_SESSION['timeline_user_id']);
     }
 
@@ -200,7 +214,7 @@ class Timeline_Plugin
 
         global $wpdb;
         $user_id = intval($_SESSION['timeline_user_id']);
-        
+
         return $wpdb->get_row($wpdb->prepare(
             "SELECT * FROM {$this->table_users} WHERE id = %d",
             $user_id
@@ -437,6 +451,62 @@ class Timeline_Plugin
                 }
                 $this->load_template_admin('project-preview');
                 break;
+
+            case 'action_create_user':
+                $this->handle_create_user();
+                break;
+
+            case 'action_delete_user':
+                $this->handle_delete_user();
+                break;
+
+            case 'action_change_password':
+                $this->handle_change_password();
+                break;
+
+            case 'action_admin_change_password':
+                $this->handle_admin_change_password();
+                break;
+
+            case 'action_create_project':
+                $this->handle_create_project();
+                break;
+
+            case 'action_update_project':
+                $this->handle_update_project();
+                break;
+
+            case 'action_delete_project':
+                $this->handle_delete_project();
+                break;
+
+            case 'action_save_milestone':
+                if (class_exists('Timeline_Handlers')) {
+                    $handlers = new Timeline_Handlers();
+                    $handlers->handle_save_milestone();
+                }
+                break;
+
+            case 'action_delete_milestone':
+                if (class_exists('Timeline_Handlers')) {
+                    $handlers = new Timeline_Handlers();
+                    $handlers->handle_delete_milestone();
+                }
+                break;
+
+            case 'action_upload_document':
+                if (class_exists('Timeline_Handlers')) {
+                    $handlers = new Timeline_Handlers();
+                    $handlers->handle_upload_document();
+                }
+                break;
+
+            case 'action_delete_document':
+                if (class_exists('Timeline_Handlers')) {
+                    $handlers = new Timeline_Handlers();
+                    $handlers->handle_delete_document();
+                }
+                break;
         }
     }
 
@@ -539,7 +609,7 @@ class Timeline_Plugin
         if ($user && password_verify($password, $user->password)) {
             // Regenerar ID de sesión por seguridad
             session_regenerate_id(true);
-            
+
             // Guardar datos en sesión
             $_SESSION['timeline_user_id'] = $user->id;
             $_SESSION['timeline_user_role'] = $user->role;
@@ -587,15 +657,15 @@ class Timeline_Plugin
 
         // Limpiar sesión
         $_SESSION = array();
-        
+
         // Destruir cookie de sesión
         if (isset($_COOKIE[session_name()])) {
             setcookie(session_name(), '', time() - 3600, '/');
         }
-        
+
         // Destruir sesión
         session_destroy();
-        
+
         wp_redirect(home_url('/login-proyectos?logout=success'));
         exit;
     }
@@ -1021,139 +1091,139 @@ class Timeline_Plugin
     }
 
     public function handle_create_project()
-{
-    if (!$this->is_logged_in() || !$this->projects) {
-        wp_redirect(home_url('/login-proyectos'));
+    {
+        if (!$this->is_logged_in() || !$this->projects) {
+            wp_redirect(home_url('/login-proyectos'));
+            exit;
+        }
+
+        $current_user = $this->get_current_user();
+
+        if (!$this->can_manage_projects($current_user)) {
+            wp_die('No tienes permisos.');
+        }
+
+        if (
+            !isset($_POST['timeline_project_nonce']) ||
+            !wp_verify_nonce($_POST['timeline_project_nonce'], 'timeline_project_form')
+        ) {
+            wp_die('Error de seguridad');
+        }
+
+        $featured_image = '';
+        if (!empty($_POST['featured_image'])) {
+            $image_data = $_POST['featured_image'];
+            if (strpos($image_data, 'data:image') === 0) {
+                $featured_image = $this->save_base64_image($image_data, 'project');
+            } else {
+                $featured_image = $image_data;
+            }
+        }
+
+        $project_data = array(
+            'name' => $_POST['name'],
+            'address' => $_POST['address'],
+            'start_date' => $_POST['start_date'],
+            'end_date' => $_POST['end_date'],
+            'description' => $_POST['description'],
+            'featured_image' => $featured_image,
+            'project_status' => isset($_POST['project_status']) ? $_POST['project_status'] : 'en_proceso'
+        );
+
+        $project_id = $this->projects->create_project($project_data, $current_user->id);
+
+        if ($project_id) {
+            // ✅ Array para almacenar IDs de clientes asignados
+            $assigned_client_ids = array();
+
+            // Asignar clientes al proyecto
+            if (isset($_POST['clients']) && is_array($_POST['clients'])) {
+                foreach ($_POST['clients'] as $client_id) {
+                    $this->projects->assign_client_to_project($project_id, $client_id, $current_user->id);
+                    $assigned_client_ids[] = intval($client_id);
+                }
+            }
+
+            // Crear hitos semanales automáticos (sin notificaciones)
+            $this->create_weekly_milestones($project_id, $_POST['start_date'], $_POST['end_date'], $current_user->id);
+
+            // ✅ NUEVO: Enviar notificación de nuevo proyecto a los clientes asignados
+            if (!empty($assigned_client_ids)) {
+                $this->projects->notify_clients_new_project($project_id, $assigned_client_ids);
+
+                // Log en auditoría
+                if ($this->audit_log) {
+                    $this->audit_log->log(
+                        $current_user->id,
+                        'create',
+                        'project',
+                        $project_id,
+                        'Notificación de nuevo proyecto enviada a ' . count($assigned_client_ids) . ' cliente(s)'
+                    );
+                }
+            }
+
+            wp_redirect(home_url('/timeline-proyectos?success=created'));
+        } else {
+            wp_redirect(home_url('/timeline-proyecto-nuevo?error=failed'));
+        }
         exit;
     }
 
-    $current_user = $this->get_current_user();
-
-    if (!$this->can_manage_projects($current_user)) {
-        wp_die('No tienes permisos.');
-    }
-
-    if (
-        !isset($_POST['timeline_project_nonce']) ||
-        !wp_verify_nonce($_POST['timeline_project_nonce'], 'timeline_project_form')
-    ) {
-        wp_die('Error de seguridad');
-    }
-
-    $featured_image = '';
-    if (!empty($_POST['featured_image'])) {
-        $image_data = $_POST['featured_image'];
-        if (strpos($image_data, 'data:image') === 0) {
-            $featured_image = $this->save_base64_image($image_data, 'project');
-        } else {
-            $featured_image = $image_data;
-        }
-    }
-
-    $project_data = array(
-        'name' => $_POST['name'],
-        'address' => $_POST['address'],
-        'start_date' => $_POST['start_date'],
-        'end_date' => $_POST['end_date'],
-        'description' => $_POST['description'],
-        'featured_image' => $featured_image,
-        'project_status' => isset($_POST['project_status']) ? $_POST['project_status'] : 'en_proceso'
-    );
-
-    $project_id = $this->projects->create_project($project_data, $current_user->id);
-
-    if ($project_id) {
-        // ✅ Array para almacenar IDs de clientes asignados
-        $assigned_client_ids = array();
-        
-        // Asignar clientes al proyecto
-        if (isset($_POST['clients']) && is_array($_POST['clients'])) {
-            foreach ($_POST['clients'] as $client_id) {
-                $this->projects->assign_client_to_project($project_id, $client_id, $current_user->id);
-                $assigned_client_ids[] = intval($client_id);
-            }
-        }
-
-        // Crear hitos semanales automáticos (sin notificaciones)
-        $this->create_weekly_milestones($project_id, $_POST['start_date'], $_POST['end_date'], $current_user->id);
-
-        // ✅ NUEVO: Enviar notificación de nuevo proyecto a los clientes asignados
-        if (!empty($assigned_client_ids)) {
-            $this->projects->notify_clients_new_project($project_id, $assigned_client_ids);
-            
-            // Log en auditoría
-            if ($this->audit_log) {
-                $this->audit_log->log(
-                    $current_user->id,
-                    'create',
-                    'project',
-                    $project_id,
-                    'Notificación de nuevo proyecto enviada a ' . count($assigned_client_ids) . ' cliente(s)'
-                );
-            }
-        }
-
-        wp_redirect(home_url('/timeline-proyectos?success=created'));
-    } else {
-        wp_redirect(home_url('/timeline-proyecto-nuevo?error=failed'));
-    }
-    exit;
-}
-
     private function create_weekly_milestones($project_id, $start_date, $end_date, $user_id)
-{
-    if (!$this->milestones) {
-        return;
-    }
-
-    $start = new DateTime($start_date);
-    $end = new DateTime($end_date);
-
-    $current = clone $start;
-
-    $day_of_week = (int)$current->format('N');
-    if ($day_of_week != 5) {
-        $days_until_friday = (5 - $day_of_week + 7) % 7;
-        if ($days_until_friday == 0) {
-            $days_until_friday = 7;
-        }
-        $current->modify("+{$days_until_friday} days");
-    }
-
-    $counter = 0;
-
-    while ($current <= $end) {
-        $counter++;
-
-        $milestone_data = array(
-            'project_id' => $project_id,
-            'title' => "Revisión Semanal #{$counter}",
-            'date' => $current->format('Y-m-d'),
-            'description' => '',
-            'status' => 'pendiente'
-        );
-
-        // ✅ CAMBIO IMPORTANTE: Pasar false para NO enviar notificación
-        $milestone_id = $this->milestones->create_milestone($milestone_data, $user_id, false);
-
-        if ($milestone_id && $this->milestones) {
-            $default_image = 'https://www.bebuilt.es/wp-content/uploads/2023/08/cropped-favicon.png';
-            $this->milestones->add_milestone_image($milestone_id, $default_image, 0);
+    {
+        if (!$this->milestones) {
+            return;
         }
 
-        $current->modify('+7 days');
-    }
+        $start = new DateTime($start_date);
+        $end = new DateTime($end_date);
 
-    if ($this->audit_log && $counter > 0) {
-        $this->audit_log->log(
-            $user_id,
-            'create',
-            'project',
-            $project_id,
-            "Se crearon automáticamente {$counter} hitos semanales para el proyecto (sin notificaciones)"
-        );
+        $current = clone $start;
+
+        $day_of_week = (int)$current->format('N');
+        if ($day_of_week != 5) {
+            $days_until_friday = (5 - $day_of_week + 7) % 7;
+            if ($days_until_friday == 0) {
+                $days_until_friday = 7;
+            }
+            $current->modify("+{$days_until_friday} days");
+        }
+
+        $counter = 0;
+
+        while ($current <= $end) {
+            $counter++;
+
+            $milestone_data = array(
+                'project_id' => $project_id,
+                'title' => "Revisión Semanal #{$counter}",
+                'date' => $current->format('Y-m-d'),
+                'description' => '',
+                'status' => 'pendiente'
+            );
+
+            // ✅ CAMBIO IMPORTANTE: Pasar false para NO enviar notificación
+            $milestone_id = $this->milestones->create_milestone($milestone_data, $user_id, false);
+
+            if ($milestone_id && $this->milestones) {
+                $default_image = 'https://www.bebuilt.es/wp-content/uploads/2023/08/cropped-favicon.png';
+                $this->milestones->add_milestone_image($milestone_id, $default_image, 0);
+            }
+
+            $current->modify('+7 days');
+        }
+
+        if ($this->audit_log && $counter > 0) {
+            $this->audit_log->log(
+                $user_id,
+                'create',
+                'project',
+                $project_id,
+                "Se crearon automáticamente {$counter} hitos semanales para el proyecto (sin notificaciones)"
+            );
+        }
     }
-}
 
     public function handle_update_project()
     {

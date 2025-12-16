@@ -21,8 +21,8 @@ class Timeline_Handlers {
         add_action('admin_post_timeline_delete_milestone', array($this, 'handle_delete_milestone'));
         
         // Registrar handlers de documentos
-        add_action('admin_post_timeline_upload_document', array($this, 'handle_upload_document'));
-        add_action('admin_post_timeline_delete_document', array($this, 'handle_delete_document'));
+        // add_action('admin_post_timeline_upload_document', array($this, 'handle_upload_document'));
+        // add_action('admin_post_timeline_delete_document', array($this, 'handle_delete_document'));
     }
     
     /**
